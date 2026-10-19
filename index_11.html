@@ -1,0 +1,2916 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pulse Attendance</title>
+<meta name="description" content="Employee attendance and clock-in board for G9 Outsourcing / NYTelecon.">
+<style>
+:root{
+  --bg:#fff; --bg-sunk:#f6f7f9; --surface:#fff; --surface-2:#f1f3f5;
+  --border:#e4e7eb; --border-strong:#d2d7dd;
+  --text:#14161a; --text-2:#5b6270; --text-3:#878f9c;
+  --accent:#3b5bdb; --accent-soft:#eaeeff; --on-accent:#fff;
+  --ok:#1a7f52; --ok-soft:#e6f4ed;
+  --warn:#9a6212; --warn-soft:#fdf2e0;
+  --bad:#b3261e; --bad-soft:#fdeceb;
+  --info:#1f6f9c; --info-soft:#e7f2f8;
+  --mute:#6b7280; --mute-soft:#f0f1f3;
+  --radius:12px; --radius-sm:8px;
+  --shadow:0 1px 2px rgba(16,18,22,.05), 0 8px 24px rgba(16,18,22,.06);
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1013; --bg-sunk:#0a0b0e; --surface:#16191e; --surface-2:#1d2026;
+  --border:#272b33; --border-strong:#353a44;
+  --text:#eef0f3; --text-2:#a3abb8; --text-3:#767e8b;
+  --accent:#748ffc; --accent-soft:#1c2338; --on-accent:#0e1013;
+  --ok:#4ec08a; --ok-soft:#10261c; --warn:#e3b341; --warn-soft:#2a2113;
+  --bad:#f28b82; --bad-soft:#2d1614; --info:#6fb6dd; --info-soft:#11232e;
+  --mute:#9aa2ae; --mute-soft:#1d2026;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --bg:#0e1013; --bg-sunk:#0a0b0e; --surface:#16191e; --surface-2:#1d2026;
+  --border:#272b33; --border-strong:#353a44;
+  --text:#eef0f3; --text-2:#a3abb8; --text-3:#767e8b;
+  --accent:#748ffc; --accent-soft:#1c2338; --on-accent:#0e1013;
+  --ok:#4ec08a; --ok-soft:#10261c; --warn:#e3b341; --warn-soft:#2a2113;
+  --bad:#f28b82; --bad-soft:#2d1614; --info:#6fb6dd; --info-soft:#11232e;
+  --mute:#9aa2ae; --mute-soft:#1d2026;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:var(--accent)}
+.hide{display:none !important}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:16px;padding:0 16px;height:60px;
+  background:var(--surface);border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:9px;font-weight:600;letter-spacing:-.01em}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px var(--ok-soft)}
+.nav{display:flex;gap:2px;margin-left:8px;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav button{padding:7px 13px;border-radius:999px;color:var(--text-2);font-size:14px;font-weight:500;white-space:nowrap}
+.nav button:hover{background:var(--surface-2);color:var(--text)}
+.nav button[aria-current="page"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.spacer{flex:1}
+.clock{font-size:14px;color:var(--text-2);font-weight:500;white-space:nowrap}
+.iconbtn{width:36px;height:36px;border-radius:var(--radius-sm);display:grid;place-items:center;color:var(--text-2);border:1px solid var(--border)}
+.iconbtn:hover{background:var(--surface-2);color:var(--text)}
+.who{display:flex;align-items:center;gap:9px;padding:4px 10px 4px 4px;border-radius:999px;border:1px solid var(--border)}
+.who:hover{background:var(--surface-2)}
+.avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);
+  color:var(--accent);font-size:11px;font-weight:700;flex:none}
+.main{padding:22px 16px 80px;max-width:1500px;margin:0 auto}
+h1{font-size:26px;font-weight:600;letter-spacing:-.02em}
+h2{font-size:17px;font-weight:600;letter-spacing:-.01em}
+h3{font-size:14px;font-weight:600}
+.sub{color:var(--text-2);font-size:14px}
+.page-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.card-head{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.card-body{padding:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 15px;border-radius:var(--radius-sm);
+  border:1px solid var(--border-strong);background:var(--surface);font-size:14px;font-weight:500;transition:background .12s}
+.btn:hover{background:var(--surface-2)}
+.btn-primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn-primary:hover{filter:brightness(1.08);background:var(--accent)}
+.btn-danger{color:var(--bad);border-color:var(--border-strong)}
+.btn-sm{padding:5px 10px;font-size:13px}
+.input,select.input{width:100%;padding:9px 11px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface)}
+.input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.7;white-space:nowrap}
+.pill .sq{width:7px;height:7px;border-radius:2px;background:currentColor;flex:none}
+.p-ok{background:var(--ok-soft);color:var(--ok)} .p-warn{background:var(--warn-soft);color:var(--warn)}
+.p-bad{background:var(--bad-soft);color:var(--bad)} .p-info{background:var(--info-soft);color:var(--info)}
+.p-mute{background:var(--mute-soft);color:var(--mute)} .p-accent{background:var(--accent-soft);color:var(--accent)}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:1px 8px;border-radius:6px;background:var(--surface-2);
+  color:var(--text-2);font-size:11.5px;font-weight:600;white-space:nowrap}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;text-align:left}
+.stat:hover{border-color:var(--border-strong)}
+.stat[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.stat .v{font-size:30px;font-weight:650;letter-spacing:-.03em;line-height:1.1}
+.stat .l{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-2);font-weight:500;margin-top:3px}
+.stat .l .sq{width:8px;height:8px;border-radius:2px;flex:none}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);
+  padding:9px 12px;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;background:var(--surface);z-index:2}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg-sunk)}
+.r{text-align:right} .c{text-align:center}
+.name{font-weight:550} .muted{color:var(--text-2)} .tiny{font-size:12px;color:var(--text-3)}
+.bar{position:relative;height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden;min-width:70px}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:999px;display:block}
+.bar i.ok{background:var(--ok)} .bar i.warn{background:var(--warn)} .bar i.bad{background:var(--bad)} .bar i.over{background:var(--info)}
+.bal{font-weight:650} .bal.neg{color:var(--bad)} .bal.pos{color:var(--info)} .bal.zero{color:var(--text-2)}
+.rollups{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.roll{border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;background:var(--bg-sunk)}
+.roll .k{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);font-weight:600}
+.roll .v{font-size:24px;font-weight:650;letter-spacing:-.02em;margin-top:2px}
+.ribbon{display:flex;height:7px;border-radius:999px;overflow:hidden;background:var(--surface-2);min-width:90px}
+.ribbon span{display:block;height:100%}
+.dots{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;border:1.5px solid transparent}
+.agentwrap{max-width:560px;margin:0 auto}
+.hero{text-align:center;padding:10px 0 22px}
+.hero .hi{font-size:15px;color:var(--text-2)}
+.hero .now{font-size:46px;font-weight:650;letter-spacing:-.035em;line-height:1.1;margin-top:2px}
+.hero .date{font-size:13.5px;color:var(--text-3);margin-top:2px}
+.schedcard{padding:16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);margin-bottom:14px}
+.seg{display:flex;gap:12px;padding:11px 0;border-top:1px dashed var(--border)}
+.seg:first-of-type{border-top:none;padding-top:4px}
+.seg .time{font-weight:600;white-space:nowrap;font-size:14px}
+.bigbtn{width:100%;padding:20px;border-radius:var(--radius);font-size:19px;font-weight:650;letter-spacing:-.01em;border:1px solid transparent;transition:transform .08s}
+.bigbtn:active{transform:scale(.985)}
+.bigbtn.go{background:var(--ok);color:#fff}
+.bigbtn.late{background:#f0a429;color:#3a2600}
+.bigbtn.stop{background:var(--surface);border-color:var(--border-strong)}
+.bigbtn[disabled]{opacity:.55;cursor:not-allowed}
+.timer{font-size:40px;font-weight:650;letter-spacing:-.03em;text-align:center;line-height:1.1}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.flash{background:var(--ok-soft);color:var(--ok);border-radius:var(--radius);padding:13px 15px;font-weight:600;
+  text-align:center;margin-bottom:12px;animation:pop .3s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+.loginwrap{min-height:100dvh;display:grid;place-items:center;padding:24px;background:var(--bg-sunk)}
+.loginbox{width:100%;max-width:400px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:5px}
+.quick{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+.quick button{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:left;font-size:13.5px}
+.quick button:hover{background:var(--surface-2);border-color:var(--border-strong)}
+.divider{display:flex;align-items:center;gap:10px;margin:18px 0 4px;color:var(--text-3);font-size:11.5px;font-weight:600;letter-spacing:.05em}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
+.err{background:var(--bad-soft);color:var(--bad);padding:9px 12px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.empty{text-align:center;padding:40px 20px;color:var(--text-2)}
+.empty .big{font-size:34px;margin-bottom:8px}
+.exc{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border)}
+.exc:last-child{border-bottom:none}
+.exc .grow{flex:1;min-width:0}
+.weekgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.daycard{border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 12px;background:var(--surface)}
+.daycard.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.banner{background:var(--accent-soft);color:var(--accent);padding:9px 14px;border-radius:var(--radius-sm);font-size:13px;
+  margin-bottom:16px;display:flex;gap:9px;align-items:flex-start}
+.banner.warn{background:var(--warn-soft);color:var(--warn)}
+.subnav{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);overflow-x:auto}
+.subnav button{padding:9px 14px;font-size:14px;font-weight:550;color:var(--text-2);border-bottom:2px solid transparent;white-space:nowrap}
+.subnav button[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+.gridcell{width:58px;padding:5px 6px;text-align:center;border:1px solid var(--border);border-radius:6px;background:var(--surface);font-size:13px}
+.gridcell:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.gridcell.dflt{color:var(--text-3)}
+.gridcell.set{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:650}
+.gridcell.unset{border-style:dashed;border-color:var(--border-strong)}
+.gridcell.note{border-color:var(--warn);background:var(--warn-soft);color:var(--warn);font-weight:650;cursor:pointer;width:78px}
+.sticky-first td:first-child,.sticky-first th:first-child{position:sticky;left:0;background:var(--surface);z-index:1}
+.sticky-first tbody tr:hover td:first-child{background:var(--bg-sunk)}
+.tl{position:relative;height:9px;border-radius:999px;background:var(--surface-2);margin-top:8px;min-width:150px}
+.tl-sm{height:7px;margin-top:4px}
+.tlseg{position:absolute;top:0;bottom:0;border-radius:3px}
+.tlaxis{position:relative;height:15px;margin-top:3px;font-size:10px;color:var(--text-3)}
+.tlaxis span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.modalbg{position:fixed;inset:0;background:rgba(10,12,16,.55);display:grid;place-items:center;z-index:200;padding:20px}
+.modal{width:100%;max-width:460px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);max-height:90vh;overflow:auto}
+.modal .card-head{position:sticky;top:0;background:var(--surface)}
+.manual{background:var(--accent-soft);color:var(--accent);font-weight:650}
+footer.note{max-width:1500px;margin:0 auto;padding:0 16px 40px;color:var(--text-3);font-size:12.5px}
+@media (max-width:640px){.main{padding:16px 12px 70px}h1{font-size:22px}.hero .now{font-size:40px}.clock{display:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ===========================================================================
+   PULSE — Employee Attendance & Clock-In
+   Single file. No build step, no server, no dependencies.
+
+   HOW THE SCHEDULE WORKS
+   ----------------------
+   You do NOT write schedules by hand. You maintain two things in Admin:
+     1. the campaign list, and
+     2. the mandays each campaign needs per day.
+   The app works out who goes where, every time it loads. Change the mandays,
+   the schedule changes. Nothing else to update.
+   =========================================================================== */
+
+/* ---------------------------------------------------------------
+   1. FIXED REFERENCE DATA
+   --------------------------------------------------------------- */
+
+// Shift windows, in minutes from midnight. A value over 1440 means next day.
+const REGION_WINDOW = {
+  AU:   [7*60,     16*60+30],   // 7:00 AM – 4:30 PM
+  SEA:  [8*60+30,  18*60],      // 8:30 AM – 6:00 PM
+  APAC: [8*60+30,  18*60],
+  PH:   [8*60,     16*60],      // 8:00 AM – 4:00 PM
+  MEA:  [12*60+30, 22*60],      // 12:30 PM – 10:00 PM
+  EU:   [15*60+30, 25*60],      // 3:30 PM – 1:00 AM
+  NA:   [21*60,    30*60+30],   // 9:00 PM – 6:30 AM
+};
+const REGIONS = Object.keys(REGION_WINDOW);
+const TYPES   = ['LQ','RSVP','CS','DP','Research','Non-Voice','F2F','Webinar'];
+const STATUSES= ['Ongoing','Upcoming','Ending','Paused','Completed'];
+const UNITS   = ['Incall','Fervent'];
+const CLASSES = ['Senior','Temp','Trainee','Freelancer'];
+const BANDS   = ['day','evening','night'];
+
+const TL_COLOR = {Cha:'#3b5bdb',Jovi:'#0b7285',Maricel:'#9c36b5',Allen:'#2b8a3e',
+  Kurtnie:'#c2410c',Rizza:'#a61e4d',Christine:'#5c7cfa',Cathy:'#0ca678',TJ:'#7048e8',Tessa:'#495057'};
+
+const SETTINGS = {grace:5, mia:30, absent:120, earlyIn:60};
+
+// One manday = this many productive hours. Everything converts through it:
+// 1 manday = 8h, 0.5 = 4h, 0.25 = 2h, 0.125 = 1h.
+const WORK_HOURS = 8;
+const WORK_MIN = WORK_HOURS*60;          // 8h of actual work
+const BREAK_MIN = 90;                    // 1h30 unpaid break
+const SHIFT_SPAN_MIN = WORK_MIN+BREAK_MIN;   // 9h30 on shift, start to finish
+
+/* A campaign's shift window. Each campaign has its own start time; the finish
+   is always start + 9h30. The break sits in the middle, splitting the day into
+   two 4-hour work halves. */
+function winOf(c){
+  const st=(c&&c.start!=null) ? Number(c.start) : (REGION_WINDOW[(c&&c.region)||'SEA']||REGION_WINDOW.SEA)[0];
+  return [st, st+SHIFT_SPAN_MIN];
+}
+function halvesOf(c){
+  const w=winOf(c);
+  return [[w[0], w[0]+WORK_MIN/2], [w[0]+WORK_MIN/2+BREAK_MIN, w[1]]];
+}
+const winOfId = id => winOf(campaign(id));
+
+// How long one agent's stint on a campaign lasts. 'full' = the whole shift window.
+const BLOCKS = [['full','Full shift'],['4','4 hours'],['2','2 hours'],['1','1 hour']];
+const blockMinutes = b => b==='full' ? null : Number(b)*60;
+
+// Day statuses an admin or TL can set against an agent.
+// The first four are the ones that stop an agent being scheduled at all.
+const EXC_OPTIONS = [
+  ['',             'Working (normal)'],
+  ['LEAVE',        'Leave'],
+  ['FORCED_LEAVE', 'Forced leave'],
+  ['AWOL',         'AWOL'],
+  ['HALF_AM',      'Half day — works morning'],
+  ['HALF_PM',      'Half day — works afternoon'],
+  ['OFF',          'Rest day'],
+  ['TRAINING',     'Training'],
+  ['HOLIDAY',      'Holiday'],
+];
+const EXC_LABEL = Object.fromEntries(EXC_OPTIONS.filter(x=>x[0]).concat([['HALF_DAY','Half day — works morning']]));
+const DEMO_AGENT = 'a1';
+
+const USERS = [
+  {email:'abi@nytelecon.com',   name:'Abi Esmao',   role:'agent', agentId:'a1'},
+  {email:'cha@nytelecon.com',   name:'Cha',         role:'tl'},
+  {email:'jovi@nytelecon.com',  name:'Jovi',        role:'tl'},
+  {email:'tessa@nytelecon.com', name:'Tessa Jacob', role:'admin'},
+];
+
+/* ---------------------------------------------------------------
+   2. STARTING DATA  (replaced by data.json once you publish one)
+   --------------------------------------------------------------- */
+const DEFAULT_DATA = {
+  meta:{updated:null, note:'Built-in starting data'},
+  campaigns:[
+    {id:'c1', name:'Dell RSVP',     client:'Incall',  type:'RSVP',    region:'SEA',  tl:'Cha',       status:'Ongoing', block:'full', start:8*60+30},
+    {id:'c2', name:'SAP Now',       client:'Incall',  type:'CS',      region:'SEA',  tl:'Maricel',   status:'Ongoing', block:'full', start:8*60+30},
+    {id:'c3', name:'Google RSVP',   client:'Incall',  type:'RSVP',    region:'SEA',  tl:'Cha',       status:'Ongoing', block:'full', start:8*60+30},
+    {id:'c4', name:'Lenovo LQ',     client:'Incall',  type:'LQ',      region:'SEA',  tl:'Jovi',      status:'Ongoing', block:'full', start:8*60+30},
+    {id:'c5', name:'Checkpoint LQ', client:'Incall',  type:'LQ',      region:'SEA',  tl:'Cha',       status:'Ongoing', block:'full', start:8*60+30},
+    {id:'c6', name:'Cohesity RSVP', client:'Incall',  type:'RSVP',    region:'SEA',  tl:'Jovi',      status:'Ongoing', block:'full', start:8*60+30},
+    {id:'c7', name:'Ingram Micro',  client:'Incall',  type:'RSVP',    region:'SEA',  tl:'Jovi',      status:'Ongoing', block:'full', start:8*60+30},
+    {id:'c8', name:'Fujitsu RSVP',  client:'Incall',  type:'RSVP',    region:'SEA',  tl:'Cha',       status:'Ongoing', block:'full', start:8*60+30},
+    {id:'c9', name:'Starhub LQ',    client:'Incall',  type:'LQ',      region:'SEA',  tl:'Cha',       status:'Ongoing', block:'full', start:8*60+30},
+    {id:'c10',name:'SOG',           client:'Incall',  type:'CS',      region:'PH',   tl:'Christine', status:'Ongoing', block:'full', start:8*60},
+    {id:'c11',name:'Fervent SEA',   client:'Fervent', type:'Webinar', region:'APAC', tl:'Allen',     status:'Ongoing', block:'full', start:8*60+30},
+    {id:'c12',name:'Fervent EU',    client:'Fervent', type:'Webinar', region:'EU',   tl:'Kurtnie',   status:'Ongoing', block:'full', start:15*60+30},
+    {id:'c13',name:'Fervent NA',    client:'Fervent', type:'Webinar', region:'NA',   tl:'Rizza',     status:'Ongoing', block:'full', start:21*60},
+  ],
+  agents:[
+    {id:'a1', name:'Abi Esmao',             unit:'Incall',  cls:'Senior',     skill:'LQ',      band:'day',     active:true},
+    {id:'a2', name:'Andy Gallardo',         unit:'Incall',  cls:'Senior',     skill:'CS',      band:'day',     active:true},
+    {id:'a3', name:'Catherine Ortiz',       unit:'Incall',  cls:'Senior',     skill:'CS',      band:'day',     active:true},
+    {id:'a4', name:'Gene Rilcopiro',        unit:'Incall',  cls:'Senior',     skill:'RSVP',    band:'day',     active:true},
+    {id:'a5', name:'Harry Pasahol',         unit:'Incall',  cls:'Temp',       skill:'RSVP',    band:'day',     active:true},
+    {id:'a6', name:'Hazel Alvarez',         unit:'Incall',  cls:'Temp',       skill:'RSVP',    band:'day',     active:true},
+    {id:'a7', name:'Kristine Delos Santos', unit:'Incall',  cls:'Temp',       skill:'CS',      band:'day',     active:true},
+    {id:'a8', name:'Ken Lionel Esposa',     unit:'Incall',  cls:'Temp',       skill:'RSVP',    band:'day',     active:true},
+    {id:'a9', name:'Eloisa Mendoza',        unit:'Incall',  cls:'Temp',       skill:'CS',      band:'day',     active:true},
+    {id:'a10',name:'Jerico Paro Cruz',      unit:'Incall',  cls:'Temp',       skill:'CS',      band:'day',     active:true},
+    {id:'a11',name:'Joy Corpuz',            unit:'Incall',  cls:'Temp',       skill:'RSVP',    band:'day',     active:true},
+    {id:'a12',name:'Austine Capito',        unit:'Incall',  cls:'Temp',       skill:'LQ',      band:'day',     active:true},
+    {id:'a13',name:'Jake Nagrampa',         unit:'Incall',  cls:'Temp',       skill:'LQ',      band:'day',     active:true},
+    {id:'a14',name:'Reyche Elisan',         unit:'Incall',  cls:'Temp',       skill:'RSVP',    band:'day',     active:true},
+    {id:'a15',name:'Ryan Pulgado',          unit:'Incall',  cls:'Trainee',    skill:'RSVP',    band:'day',     active:true},
+    {id:'a16',name:'Gem Rilcopiro',         unit:'Incall',  cls:'Temp',       skill:'CS',      band:'day',     active:true},
+    {id:'a17',name:'Cyrelle Bacting',       unit:'Incall',  cls:'Temp',       skill:'LQ',      band:'day',     active:true},
+    {id:'a18',name:'Aliaster Seguira',      unit:'Incall',  cls:'Senior',     skill:'CS',      band:'day',     active:true},
+    {id:'a19',name:'Fahad Naga',            unit:'Fervent', cls:'Temp',       skill:'Webinar', band:'night',   active:true},
+    {id:'a20',name:'Roynan Galang',         unit:'Fervent', cls:'Temp',       skill:'Webinar', band:'night',   active:true},
+    {id:'a21',name:'Mary Joy Ablola',       unit:'Fervent', cls:'Temp',       skill:'Webinar', band:'night',   active:true},
+    {id:'a22',name:'Queenie Silvano',       unit:'Fervent', cls:'Freelancer', skill:'Webinar', band:'night',   active:true},
+    {id:'a23',name:'Kyle Rojo',             unit:'Fervent', cls:'Temp',       skill:'Webinar', band:'evening', active:true},
+    {id:'a24',name:'Mike Marmolejo',        unit:'Fervent', cls:'Trainee',    skill:'Webinar', band:'evening', active:true},
+  ],
+  // Mandays per campaign per date: {campaignId: {'YYYY-MM-DD': number | {note:'IB'}}}
+  // There is no campaign-level default — a day is a number, a note, or unset.
+  required:{},
+  // Only used to fill the built-in demo; real data comes from the sheet.
+  demoMandays:{c1:3,c2:3,c3:1.5,c4:1,c5:1,c6:1,c7:1,c8:0.5,c9:1,c10:1,c11:1,c12:1.5,c13:2},
+  // How much of a day each agent can work: {'agentId|YYYY-MM-DD': 0..1}
+  availability:{},
+  // per-agent exceptions: {'agentId|YYYY-MM-DD': 'LEAVE'|'OFF'|'FORCED_LEAVE'|'TRAINING'|'HOLIDAY'}
+  exceptions:{},
+};
+
+/* ---------------------------------------------------------------
+   3. HELPERS
+   --------------------------------------------------------------- */
+const $ = (s,r=document)=>r.querySelector(s);
+function el(t,p={},...kids){
+  const n=document.createElement(t);
+  for(const [k,v] of Object.entries(p)){
+    if(k==='class') n.className=v;
+    else if(k==='html') n.innerHTML=v;
+    else if(k==='value') n.value=v;
+    else if(k.startsWith('on')) n.addEventListener(k.slice(2).toLowerCase(),v);
+    else if(v!==null&&v!==undefined&&v!==false) n.setAttribute(k,v);
+  }
+  kids.flat().forEach(k=>{ if(k===null||k===undefined||k===false)return;
+    n.appendChild(typeof k==='object'?k:document.createTextNode(String(k))); });
+  return n;
+}
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseYmd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const isWeekend=d=>d.getDay()===0||d.getDay()===6;
+function hhmm(min){const m=((min%1440)+1440)%1440,h=Math.floor(m/60),mm=m%60;
+  return (h%12===0?12:h%12)+':'+pad(mm)+' '+(h<12?'AM':'PM')}
+const fmtDur=m=>(m<0?'-':'')+Math.floor(Math.abs(m)/60)+'h '+pad(Math.abs(m)%60)+'m';
+const fteTxt=n=>(Math.round(n*100)/100).toFixed(2).replace(/\.00$/,'').replace(/(\.\d)0$/,'$1');
+const initials=n=>n.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const uid=p=>p+Math.random().toString(36).slice(2,8);
+const roundHalfHour=m=>Math.round(m/30)*30;
+
+/* ---------------------------------------------------------------
+   4. DATA LAYER
+   BASE  = data.json published to the repo (or the built-in defaults)
+   LOCAL = edits made in Admin in this browser, not yet published
+   --------------------------------------------------------------- */
+const KEY='pulse.v2';
+let DB   = {events:[], session:null, theme:'auto', local:null};
+let BASE = JSON.parse(JSON.stringify(DEFAULT_DATA));
+
+function loadLocal(){
+  try{const raw=localStorage.getItem(KEY); if(raw) DB=Object.assign(DB,JSON.parse(raw));}catch(e){}
+}
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){} }
+
+// The effective dataset = BASE, with LOCAL edits applied on top.
+function D(){ return DB.local || BASE; }
+function hasLocalEdits(){ return !!DB.local; }
+function editData(fn){
+  if(!DB.local) DB.local = JSON.parse(JSON.stringify(BASE));
+  fn(DB.local);
+  DB.local.meta = DB.local.meta||{};
+  DB.local.meta.updated = new Date().toISOString();
+  save();
+}
+function discardLocal(){ DB.local=null; save(); }
+
+/* Locked days keep their own copy of the campaigns and roster as they were that
+   day, so renaming or deleting a campaign never rewrites history. */
+let _snap=null;
+function snap(){
+  if(_snap) return _snap;
+  _snap={c:{},a:{}};
+  Object.values(D().history||{}).forEach(h=>{
+    Object.entries(h.campaigns||{}).forEach(([k,v])=>{ if(!_snap.c[k]) _snap.c[k]=v; });
+    Object.entries(h.roster||{}).forEach(([k,v])=>{ if(!_snap.a[k]) _snap.a[k]=v; });
+  });
+  return _snap;
+}
+const campaign = id => D().campaigns.find(c=>c.id===id) || snap().c[id] || null;
+const agent    = id => D().agents.find(a=>a.id===id)   || snap().a[id] || null;
+
+const lockedDay = ds => (D().history||{})[ds] || null;
+
+/* The working lists. Anything archived stays in the data so locked days and
+   old exports can still name it, but it is out of the current roster and the
+   current campaign list. */
+const activeCampaigns = () => D().campaigns.filter(c=>!c.archived);
+const activeAgents    = () => D().agents.filter(a=>!a.archived);
+const archivedCampaigns = () => D().campaigns.filter(c=>c.archived);
+const archivedAgents    = () => D().agents.filter(a=>a.archived);
+const segsOf = a => (a && a.segments) || [];
+
+/* Campaign details for a segment. A locked segment carries its own copy, so a
+   campaign renamed or deleted later never rewrites what the record says. */
+function cinfo(seg){
+  if(seg && seg.cname) return {id:seg.campaignId, name:seg.cname, client:seg.cclient||'',
+                               type:seg.ctype||'', region:seg.cregion||'SEA', tl:seg.tl};
+  const c=campaign(seg&&seg.campaignId);
+  return c || {id:seg&&seg.campaignId, name:'(removed campaign)', client:'', type:'', region:'SEA', tl:seg&&seg.tl};
+}
+const rosterFor = ds => { const h=lockedDay(ds);
+  return h&&h.roster ? Object.values(h.roster) : activeAgents(); };
+
+/* Mandays for a campaign on a date. There is no default — a day either has a
+   number in the sheet, a piece of text (IB, Pause, a person's name…), or
+   nothing at all, and the three mean different things:
+     {v:number}  -> that many mandays, agents get allocated
+     {note:text} -> whatever the sheet said; nobody is allocated
+     null        -> nothing set yet; flagged for an admin to deal with */
+function requiredRaw(cid, dateStr){
+  const h=lockedDay(dateStr);
+  if(h&&h.required&&h.required[cid]!==undefined){
+    const hv=h.required[cid];
+    return (typeof hv==='object') ? hv : {v:Number(hv)};
+  }
+  const r=(D().required||{})[cid];
+  if(r && r[dateStr]!==undefined && r[dateStr]!==null && r[dateStr]!==''){
+    const v=r[dateStr];
+    if(typeof v==='object') return v;
+    if(typeof v==='string' && isNaN(Number(v))) return {note:v};
+    return {v:Number(v)};
+  }
+  return null;
+}
+const requiredFor = (cid,ds) => { const r=requiredRaw(cid,ds); return (r&&r.v!=null)?r.v:0; };
+const requiredNote = (cid,ds) => { const r=requiredRaw(cid,ds); return (r&&r.note)?r.note:null; };
+const requiredIsSet = (cid,ds) => requiredRaw(cid,ds)!==null;
+
+/* Campaign-days with nothing set at all, for the flag on the Mandays tab. */
+function unsetMandays(days){
+  const out=[];
+  activeCampaigns().forEach(c=>{
+    if(['Completed','Upcoming'].includes(c.status)) return;
+    days.forEach(ds=>{ if(!lockedDay(ds) && !requiredIsSet(c.id,ds)) out.push({cid:c.id, name:c.name, ds}); });
+  });
+  return out;
+}
+
+/* How much of a day an agent can work, 0 to 1. The Manpower sheet carries the
+   number (1, 0.75, 0.5…); a leave code means none of it. */
+function availabilityFor(aid, dateStr){
+  const e=exceptionFor(aid, dateStr);
+  if(e==='HALF_AM'||e==='HALF_PM'||e==='HALF_DAY') return 0.5;
+  if(e) return 0;
+  const v=(D().availability||{})[aid+'|'+dateStr];
+  if(v!==undefined && v!==null && v!=='') return Math.max(0, Math.min(1, Number(v)));
+  return 1;
+}
+
+function exceptionFor(aid, dateStr){
+  const e=(D().exceptions||{})[aid+'|'+dateStr];
+  if(e) return e;
+  if(isWeekend(parseYmd(dateStr))) return 'OFF';
+  return null;
+}
+
+/* ---------------------------------------------------------------
+   5. THE AUTO-SCHEDULER
+   Reads: campaigns + mandays + who is available.
+   Writes: nothing. It recalculates every time, so the schedule can
+   never drift out of step with the numbers you entered.
+
+   Capacity is counted in HALF-DAYS, so 0.5 mandays is expressible.
+   A day agent has 2 half-days (morning, afternoon).
+   --------------------------------------------------------------- */
+function bandForRegion(region){
+  if(region==='NA') return 'night';
+  if(region==='EU') return 'evening';
+  return 'day';           // AU, SEA, APAC, PH, MEA
+}
+
+/* Time maths. Minutes from midnight; values over 1440 mean the next day,
+   which is how the EU and NA shifts stay on the right shift date. */
+const overlaps=(a,b)=>a.start<b.end&&b.start<a.end;
+
+/* Earliest free stretch of `durMin` inside this campaign's shift.
+   Anything shorter than a full shift has to sit inside one of the two 4-hour
+   work halves, so nobody is scheduled straight through the break.
+   `restrict` limits a half-day agent to their own half. */
+function findSlot(busy, c, durMin, restrict){
+  const win=winOf(c), hv=halvesOf(c);
+  const tryRange=(lo,hi)=>{
+    for(let st=lo; st+durMin<=hi; st+=30){
+      const cand={start:st,end:st+durMin};
+      if(!busy.some(b=>overlaps(cand,b))) return cand;
+    }
+    return null;
+  };
+  if(durMin>=win[1]-win[0]){
+    const cand={start:win[0],end:win[1]};
+    return busy.some(b=>overlaps(cand,b))?null:cand;
+  }
+  const ranges = restrict==='am' ? [hv[0]] : restrict==='pm' ? [hv[1]] : [hv[0],hv[1]];
+  for(const r of ranges){ const got=tryRange(r[0],r[1]); if(got) return got; }
+  return null;
+}
+
+const _schedCache={};
+function buildSchedule(dateStr){
+  if(_schedCache[dateStr]) return _schedCache[dateStr];
+
+  // A locked day is served exactly as it was recorded — never recalculated.
+  const frozen=lockedDay(dateStr);
+  if(frozen){
+    const asg=frozen.assignments||{};
+    Object.values(asg).forEach(a=>{ if(!a.segments) a.segments=[]; });
+    const out={assignments:asg, gaps:frozen.gaps||[], dateStr, locked:true};
+    _schedCache[dateStr]=out; return out;
+  }
+
+  const data=D();
+  const agents=data.agents.filter(a=>a.active!==false && !a.archived);
+  const capMin={}, exc={}, restrict={}, note={}, busy={}, placed={};
+
+  agents.forEach(a=>{
+    const e=exceptionFor(a.id,dateStr);
+    exc[a.id]=null; restrict[a.id]=null; note[a.id]=null;
+    busy[a.id]=[]; placed[a.id]=[];
+    capMin[a.id]=Math.round(availabilityFor(a.id,dateStr)*WORK_MIN);
+    if(!e) return;
+    if(e==='HALF_AM'||e==='HALF_DAY'){ restrict[a.id]='am'; note[a.id]='HALF_AM'; }
+    else if(e==='HALF_PM'){ restrict[a.id]='pm'; note[a.id]='HALF_PM'; }
+    else { exc[a.id]=e; capMin[a.id]=0; }   // LEAVE, FORCED_LEAVE, AWOL, OFF, TRAINING, HOLIDAY
+  });
+
+  // Put one stint on an agent's day. Returns the minutes credited, or 0.
+  // `want` is the time the stint occupies; `charge` is the work it counts as.
+  // A full shift window spans a lunch break, so it occupies 9h30 but counts as 8h.
+  function place(aid, c, durMin, manual, maxCharge){
+    if(capMin[aid]<=0) return 0;
+    const win=winOf(c), winLen=win[1]-win[0], halfLen=WORK_MIN/2;
+    let want=Math.min(durMin, winLen);
+    let charge = want>=winLen ? Math.min(WORK_MIN, winLen) : want;
+    if(maxCharge && charge>maxCharge){ charge=Math.max(60,Math.round(maxCharge/30)*30); want=Math.min(want,charge); }
+    if(charge>capMin[aid]){ charge=capMin[aid]; want=Math.min(want,charge); }
+    // anything between one work half and a whole shift is trimmed to a half, so
+    // nobody is scheduled through the break; the rest is picked up next pass
+    if(want>halfLen && want<winLen){ want=halfLen; charge=Math.min(charge,halfLen); }
+    if(charge<=0) return 0;
+    const slot=findSlot(busy[aid], c, want, restrict[aid]);
+    if(!slot) return 0;
+    busy[aid].push(slot);
+    placed[aid].push({start:slot.start, end:slot.end, campaignId:c.id, tl:c.tl,
+                      fte:charge/WORK_MIN, manual:!!manual});
+    capMin[aid]-=charge;
+    return charge;
+  }
+
+  // --- 1. manual pins first; the auto-assigner works around them -----------
+  const pins=data.overrides||{};
+  const pinnedMin={};
+  agents.forEach(a=>{
+    const ov=pins[a.id+'|'+dateStr];
+    if(!ov||capMin[a.id]<=0) return;
+    (normaliseOverride(ov)||[]).forEach(seg=>{
+      const c=campaign(seg.campaignId); if(!c) return;
+      const win=winOf(c);
+      const st=(seg.start==null)?win[0]:seg.start;
+      const dur=seg.mins||(win[1]-win[0]);
+      const cand={start:st,end:st+dur};
+      if(busy[a.id].some(b=>overlaps(cand,b))) return;        // ignore a clash
+      const credit=Math.min(dur,capMin[a.id]);
+      busy[a.id].push(cand);
+      placed[a.id].push({start:cand.start,end:cand.end,campaignId:c.id,tl:c.tl,
+                         fte:credit/WORK_MIN, manual:true});
+      capMin[a.id]-=credit;
+      pinnedMin[c.id]=(pinnedMin[c.id]||0)+credit;
+    });
+  });
+
+  // --- 2. auto-fill the rest ----------------------------------------------
+  const demand = data.campaigns
+    .filter(c=>!c.archived && c.status!=='Paused'&&c.status!=='Completed'&&c.status!=='Upcoming')
+    .filter(c=>!requiredNote(c.id,dateStr))      // a note means nobody is allocated that day
+    .map(c=>{
+      const asked=Math.round(requiredFor(c.id,dateStr)*WORK_MIN);
+      return {c, asked, need:Math.max(0, asked-(pinnedMin[c.id]||0))};
+    })
+    .filter(x=>x.need>0)
+    .sort((x,y)=> y.need-x.need || x.c.id.localeCompare(y.c.id));
+
+  const gaps=[];
+  demand.forEach(({c,need})=>{
+    const want=bandForRegion(c.region);
+    const win=winOf(c);
+    const blk=blockMinutes(c.block||'full');
+    let left=need;
+
+    // several passes: a 1-hour block campaign may take many agents
+    for(let pass=0; pass<8 && left>0; pass++){
+      const eligible=agents
+        .filter(a=>capMin[a.id]>0 && a.band===want)      // band is a hard rule for auto-assignment
+        .sort((x,y)=>{
+          const sc=a=>(a.skill===c.type?0:10)+(placed[a.id].length?3:0)+(capMin[a.id]<WORK_MIN?1:0);
+          return sc(x)-sc(y)||x.id.localeCompare(y.id);
+        });
+      if(!eligible.length) break;
+      let movedThisPass=0;
+      for(const a of eligible){
+        if(left<=0) break;
+        const dur = blk===null ? (win[1]-win[0]) : blk;
+        const got=place(a.id, c, dur, false, left);
+        if(got>0){ left-=got; movedThisPass+=got; }
+      }
+      if(!movedThisPass) break;
+    }
+
+    if(left>0){
+      const inBand=agents.filter(a=>a.band===want);
+      const free=inBand.filter(a=>capMin[a.id]>0);
+      gaps.push({campaignId:c.id, unfilled:left/WORK_MIN,
+        reason: inBand.length===0
+          ? 'No agent is on the '+want+' shift band this campaign needs.'
+          : free.length===0
+            ? 'All '+inBand.length+' '+want+'-band agents are fully booked (leave, half days and manual assignments included).'
+            : 'The '+free.length+' agents still free have no gap long enough inside this campaign\u2019s '
+              +hhmm(win[0])+'\u2013'+hhmm(win[1])+' window.'});
+    }
+  });
+
+  // --- 3. tidy up into segments -------------------------------------------
+  const assignments={};
+  agents.forEach(a=>{
+    if(exc[a.id]){ assignments[a.id]={exception:exc[a.id], segments:[], note:null}; return; }
+    const segs=placed[a.id].slice().sort((x,y)=>x.start-y.start);
+    // merge touching stints on the same campaign so the day reads cleanly
+    const merged=[];
+    segs.forEach(sg=>{
+      const last=merged[merged.length-1];
+      if(last && last.campaignId===sg.campaignId && last.end===sg.start){
+        last.end=sg.end; last.fte+=sg.fte; last.manual=last.manual||sg.manual;
+      } else merged.push(Object.assign({},sg));
+    });
+    assignments[a.id]={exception:null, segments:merged, note:note[a.id],
+                       idle:!merged.length, freeMin:capMin[a.id]};
+  });
+
+  const out={assignments, gaps, dateStr};
+  _schedCache[dateStr]=out;
+  return out;
+}
+
+// Overrides used to be {am,pm}. Accept both shapes.
+function normaliseOverride(ov){
+  if(!ov) return null;
+  if(Array.isArray(ov.segments)) return ov.segments;
+  const out=[];
+  const half=cid=>{ const c=campaign(cid); if(!c) return null;
+    const h=halvesOf(c); return {w:winOf(c), am:h[0], pm:h[1]}; };
+  if(ov.am&&ov.pm&&ov.am===ov.pm){ const h=half(ov.am); if(h) out.push({campaignId:ov.am,start:h.w[0],mins:h.w[1]-h.w[0]}); return out; }
+  if(ov.am){ const h=half(ov.am); if(h) out.push({campaignId:ov.am,start:h.am[0],mins:h.am[1]-h.am[0]}); }
+  if(ov.pm){ const h=half(ov.pm); if(h) out.push({campaignId:ov.pm,start:h.pm[0],mins:h.pm[1]-h.pm[0]}); }
+  return out;
+}
+
+function clearSchedCache(){ for(const k in _schedCache) delete _schedCache[k]; _snap=null; }
+
+/* ---------------------------------------------------------------
+   5b. LOCKING A DAY
+   Freezes that date's allocation, plus the mandays, campaigns and
+   roster behind it, so the record stops moving when you change
+   anything afterwards.
+   --------------------------------------------------------------- */
+function lockDay(ds, quiet){
+  const s=buildSchedule(ds);
+  // Keep the snapshot small: only what a record needs to be read back later.
+  const required={}, campaigns={}, roster={};
+  activeCampaigns().forEach(c=>{
+    const raw=requiredRaw(c.id,ds);
+    if(raw) required[c.id]=raw;
+    campaigns[c.id]={id:c.id,name:c.name,client:c.client,type:c.type,region:c.region,tl:c.tl};
+  });
+  activeAgents().forEach(a=>{ roster[a.id]={id:a.id,name:a.name,unit:a.unit,cls:a.cls,band:a.band,skill:a.skill}; });
+  const payload={
+    lockedAt:new Date().toISOString(),
+    lockedBy:(DB.session&&DB.session.name)||'admin',
+    assignments:(function(){
+      const copy=JSON.parse(JSON.stringify(s.assignments));
+      Object.values(copy).forEach(a=>{
+        delete a.freeMin; delete a.idle;
+        (a.segments||[]).forEach(sg=>{
+          const c=campaign(sg.campaignId);
+          if(c){ sg.cname=c.name; sg.cclient=c.client; sg.ctype=c.type; sg.cregion=c.region; }
+          if(!sg.manual) delete sg.manual;
+        });
+        if(!a.segments||!a.segments.length) delete a.segments;
+        if(!a.note) delete a.note;
+        if(!a.exception) delete a.exception;
+      });
+      return copy;
+    })(),
+    gaps:JSON.parse(JSON.stringify(s.gaps||[])),
+    required, campaigns, roster};
+  editData(d=>{ d.history=d.history||{}; d.history[ds]=payload; });
+  clearSchedCache();
+  if(!quiet) render();
+}
+function unlockDay(ds){ editData(d=>{ if(d.history) delete d.history[ds]; }); clearSchedCache(); render(); }
+
+/* Settings that live in the data file, so they publish with everything else. */
+function appSettings(){
+  return Object.assign({autoLock:true, autoLockAfterDays:1, autoLockWindowDays:14}, D().settings||{});
+}
+function setSetting(k,v){ touched(d=>{ d.settings=d.settings||{}; d.settings[k]=v; }); }
+
+/* Auto-lock. There is no server here, so "automatic" means it runs when an
+   admin opens the app — not overnight on its own. It only locks days that
+   actually had an allocation, and the result is an unpublished change like
+   any other until you publish it. */
+let _autoLockRan=false, autoLockMsg=null;
+function runAutoLock(){
+  if(_autoLockRan) return 0;
+  _autoLockRan=true;
+  if(!DB.session || DB.session.role!=='admin') return 0;
+  const st=appSettings();
+  if(!st.autoLock) return 0;
+  const today=parseYmd(todayStr());
+  const done=[];
+  for(let i=Math.max(1,st.autoLockAfterDays); i<=st.autoLockWindowDays; i++){
+    const d=addDays(today,-i);
+    if(isWeekend(d)) continue;
+    const ds=ymd(d);
+    if(lockedDay(ds)) continue;
+    if(daySummary(ds).mandays<=0) continue;      // nothing was allocated, nothing to record
+    lockDay(ds,true);
+    done.push(ds);
+  }
+  if(done.length){
+    clearSchedCache();
+    autoLockMsg=done.length+' past day'+(done.length===1?'':'s')+' locked automatically ('
+      +done.slice(0,4).join(', ')+(done.length>4?' and '+(done.length-4)+' more':'')
+      +'). Publish to share the record with everyone else.';
+  }
+  return done.length;
+}
+
+function historySizeKB(){
+  try{ return Math.round(JSON.stringify(D().history||{}).length/1024); }catch(e){ return 0; }
+}
+function pruneHistory(days){
+  const cut=ymd(addDays(new Date(),-days));
+  const gone=Object.keys(D().history||{}).filter(k=>k<cut);
+  if(!gone.length){ alert('Nothing is older than '+days+' days.'); return; }
+  if(!confirm('Permanently remove '+gone.length+' locked day'+(gone.length===1?'':'s')+' older than '+days+' days? Export them first if you need them.')) return;
+  touched(d=>{ gone.forEach(k=>delete d.history[k]); });
+}
+
+function daySummary(ds){
+  const s=buildSchedule(ds);
+  let mandays=0, people=0, exceptions=0;
+  Object.values(s.assignments).forEach(a=>{
+    const m=(a.segments||[]).reduce((n,x)=>n+x.fte,0);
+    if(m>0){ mandays+=m; people++; }
+    if(a.exception) exceptions++;
+  });
+  return {mandays, people, exceptions, unfilled:(s.gaps||[]).reduce((n,g)=>n+g.unfilled,0), locked:!!s.locked};
+}
+
+function scheduleFor(aid, dateStr){
+  const s=buildSchedule(dateStr).assignments[aid];
+  return s || {exception:null, segments:[], idle:true};
+}
+function scheduleText(s){
+  if(s.exception) return EXC_LABEL[s.exception]||s.exception;
+  if(!s.segments.length) return 'Unassigned';
+  return s.segments.map(x=>hhmm(x.start)+' to '+hhmm(x.end)+' '+cinfo(x).name+' | TL: '+x.tl).join('  ');
+}
+
+/* ---------------------------------------------------------------
+   6. CLOCK EVENTS AND STATUS
+   --------------------------------------------------------------- */
+const nowMin=(d=new Date())=>d.getHours()*60+d.getMinutes();
+const todayStr=()=>ymd(new Date());
+// A shift starting at/after 6 PM belongs to the date it STARTED on.
+const shiftDateFor=(d=new Date())=> nowMin(d)<6*60 ? ymd(addDays(d,-1)) : ymd(d);
+
+function rnd(seed){let h=2166136261;for(let i=0;i<seed.length;i++){h^=seed.charCodeAt(i);h=Math.imul(h,16777619);}return((h>>>0)%100000)/100000}
+
+const eventsFor=(aid,ds)=>DB.events.filter(e=>e.agentId===aid&&e.shiftDate===ds).sort((a,b)=>a.t-b.t);
+function addEvent(aid,type,ds){
+  DB.events.push({agentId:aid,type,t:Date.now(),shiftDate:ds,src:'web',ua:navigator.userAgent.slice(0,120)});
+  save();
+}
+function clockState(aid,ds){
+  const ev=eventsFor(aid,ds);
+  let inAt=null,outAt=null,onBreak=false,breakMs=0,lastBreak=null;
+  for(const e of ev){
+    if(e.type==='IN'&&!inAt) inAt=e.t;
+    if(e.type==='OUT') outAt=e.t;
+    if(e.type==='BREAK_START'){onBreak=true;lastBreak=e.t}
+    if(e.type==='BREAK_END'){onBreak=false;if(lastBreak)breakMs+=e.t-lastBreak;lastBreak=null}
+  }
+  if(onBreak&&lastBreak) breakMs+=Date.now()-lastBreak;
+  return {inAt,outAt,onBreak,breakMs};
+}
+function seedToday(){
+  const ds=todayStr();
+  if(DB.events.some(e=>e.shiftDate===ds&&e.src==='seed')) return;
+  const now=nowMin();
+  activeAgents().forEach(a=>{
+    if(a.id===DEMO_AGENT) return;
+    const s=scheduleFor(a.id,ds);
+    if(s.exception||!s.segments.length) return;
+    const start=s.segments[0].start;
+    if(now<start) return;
+    if(rnd(a.id+ds+'noshow')>0.88) return;
+    const lateBy = rnd(a.id+ds+'lateroll')>0.75 ? Math.round(9+rnd(a.id+ds+'lmin')*45) : -Math.round(rnd(a.id+ds+'early')*12);
+    const t=new Date(); t.setHours(0,start+lateBy,0,0);
+    if(t.getTime()>Date.now()) return;
+    DB.events.push({agentId:a.id,type:'IN',t:t.getTime(),shiftDate:ds,src:'seed'});
+  });
+  save();
+}
+
+const STATUS={
+  IN:{label:'Clocked In',cls:'p-ok',color:'var(--ok)'},
+  LATE:{label:'Late',cls:'p-warn',color:'var(--warn)'},
+  MIA:{label:'MIA',cls:'p-bad',color:'var(--bad)'},
+  ABSENT:{label:'Absent',cls:'p-bad',color:'var(--bad)'},
+  LEAVE:{label:'On Leave',cls:'p-info',color:'var(--info)'},
+  FORCED_LEAVE:{label:'Forced Leave',cls:'p-info',color:'var(--info)'},
+  AWOL:{label:'AWOL',cls:'p-bad',color:'var(--bad)'},
+  OFF:{label:'Rest Day',cls:'p-mute',color:'var(--mute)'},
+  TRAINING:{label:'Training',cls:'p-accent',color:'var(--accent)'},
+  HOLIDAY:{label:'Holiday',cls:'p-info',color:'var(--info)'},
+  PENDING:{label:'Not Yet Due',cls:'p-mute',color:'var(--mute)'},
+  BREAK:{label:'On Break',cls:'p-accent',color:'var(--accent)'},
+  DONE:{label:'Clocked Out',cls:'p-mute',color:'var(--text-3)'},
+  UNASSIGNED:{label:'Spare',cls:'p-mute',color:'var(--mute)'},
+};
+function resolveStatus(aid,ds){
+  const sched=scheduleFor(aid,ds);
+  if(sched.exception){
+    const k=sched.exception;
+    return {key:STATUS[k]?k:'LEAVE', sched, lateMin:0, cs:clockState(aid,ds)};
+  }
+  if(!sched.segments.length) return {key:'UNASSIGNED', sched, lateMin:0, cs:clockState(aid,ds)};
+  const cs=clockState(aid,ds), start=sched.segments[0].start, since=nowMin()-start;
+  if(cs.inAt){
+    const d=new Date(cs.inAt);
+    const lateMin=Math.max(0,(d.getHours()*60+d.getMinutes())-start-SETTINGS.grace);
+    if(cs.outAt) return {key:'DONE',sched,lateMin,cs};
+    if(cs.onBreak) return {key:'BREAK',sched,lateMin,cs};
+    return {key:lateMin>0?'LATE':'IN',sched,lateMin,cs};
+  }
+  if(since<0) return {key:'PENDING',sched,lateMin:0,cs};
+  if(since>=SETTINGS.absent) return {key:'ABSENT',sched,lateMin:0,cs};
+  if(since>=SETTINGS.mia) return {key:'MIA',sched,lateMin:0,cs};
+  return {key:'LATE',sched,lateMin:Math.max(0,since-SETTINGS.grace),cs};
+}
+
+/* ---------------------------------------------------------------
+   7. COVERAGE
+   --------------------------------------------------------------- */
+function inWindowNow(start,end,now){
+  if(end<=1440) return now>=start&&now<=end;
+  return now>=start||now<=(end-1440);
+}
+function coverage(ds){
+  const now=nowMin(), sched=buildSchedule(ds);
+  return activeCampaigns().map(c=>{
+    const w=winOf(c);
+    const row={c, required:requiredFor(c.id,ds), note:requiredNote(c.id,ds),
+               unset:!requiredIsSet(c.id,ds), scheduled:0, actual:0, agents:[],
+               window:w, live:inWindowNow(w[0],w[1],now),
+               gap:(sched.gaps.find(g=>g.campaignId===c.id)||null)};
+    activeAgents().forEach(a=>{
+      const st=resolveStatus(a.id,ds);
+      if(st.sched.exception) return;
+      st.sched.segments.forEach(seg=>{
+        if(seg.campaignId!==c.id) return;
+        row.scheduled+=seg.fte;
+        const working=['IN','LATE','BREAK'].includes(st.key);
+        const counts=working&&inWindowNow(seg.start,seg.end,now);
+        if(counts) row.actual+=seg.fte;
+        row.agents.push({a,seg,st,counts});
+      });
+    });
+    row.balance=row.actual-row.required;
+    return row;
+  });
+}
+
+/* ---------------------------------------------------------------
+   8. EXPORT
+   --------------------------------------------------------------- */
+function download(filename, text, mime){
+  const url=URL.createObjectURL(new Blob([text],{type:(mime||'text/plain')+';charset=utf-8'}));
+  const a=el('a',{href:url,download:filename}); document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function downloadCSV(filename,rows){
+  const csv=rows.map(r=>r.map(v=>{const s=v==null?'':String(v);
+    return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}).join(',')).join('\n');
+  download(filename,'﻿'+csv,'text/csv');
+}
+function exportRegister(ds){
+  const rows=[['Date','Agent','Unit','Class','Scheduled','Campaign(s)','TL(s)','Clock In','Clock Out','Late (min)','Worked','Status']];
+  activeAgents().forEach(a=>{
+    const st=resolveStatus(a.id,ds), cs=st.cs||{};
+    const segs=st.sched.segments||[];
+    const worked=cs.inAt?Math.round(((cs.outAt||Date.now())-cs.inAt-(cs.breakMs||0))/60000):0;
+    rows.push([ds,a.name,a.unit,a.cls,scheduleText(st.sched),
+      segs.map(s=>cinfo(s).name).join(' / '),
+      [...new Set(segs.map(s=>s.tl))].join(' / '),
+      cs.inAt?new Date(cs.inAt).toLocaleTimeString():'',
+      cs.outAt?new Date(cs.outAt).toLocaleTimeString():'',
+      st.lateMin||0, cs.inAt?fmtDur(worked):'', STATUS[st.key].label]);
+  });
+  downloadCSV('attendance-register-'+ds+'.csv',rows);
+}
+function exportCoverage(ds){
+  const rows=[['Date','Client','Campaign','Type','Region','TL','Shift Window','Mandays Required','Scheduled','Actual Now','Balance','Unfilled','Reason']];
+  coverage(ds).forEach(r=>rows.push([ds,r.c.client,r.c.name,r.c.type,r.c.region,r.c.tl,
+    hhmm(r.window[0])+' to '+hhmm(r.window[1]),r.required,fteTxt(r.scheduled),fteTxt(r.actual),
+    fteTxt(r.balance), r.gap?fteTxt(r.gap.unfilled):'0', r.gap?r.gap.reason:'']));
+  downloadCSV('coverage-'+ds+'.csv',rows);
+}
+function exportSchedule(ds){
+  const rows=[['Date','Agent','Unit','Status','Segment 1','Campaign 1','TL 1','Segment 2','Campaign 2','TL 2']];
+  rosterFor(ds).forEach(a=>{
+    const s=scheduleFor(a.id,ds), g=s.segments||[];
+    rows.push([ds,a.name,a.unit, s.exception?STATUS[s.exception].label:(g.length?'Scheduled':'Spare'),
+      g[0]?hhmm(g[0].start)+'-'+hhmm(g[0].end):'', g[0]?cinfo(g[0]).name:'', g[0]?g[0].tl:'',
+      g[1]?hhmm(g[1].start)+'-'+hhmm(g[1].end):'', g[1]?cinfo(g[1]).name:'', g[1]?g[1].tl:'']);
+  });
+  downloadCSV('schedule-'+ds+'.csv',rows);
+}
+
+/* ---------------------------------------------------------------
+   8b. XLSX AND JPEG WRITERS
+   A spreadsheet is a zip of XML files. This writes one directly — no
+   library, nothing to load from the internet, works offline.
+   --------------------------------------------------------------- */
+const _crcTable=(function(){const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}
+  return t;})();
+function crc32(buf){let c=0xFFFFFFFF;for(let i=0;i<buf.length;i++)c=_crcTable[(c^buf[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+const _enc=new TextEncoder();
+
+// Store-only ZIP (no compression) — simple, and spreadsheet apps read it fine.
+function zipFiles(files){
+  const chunks=[], central=[]; let offset=0;
+  const u16=n=>[n&255,(n>>8)&255];
+  const u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>24)&255];
+  files.forEach(f=>{
+    const name=_enc.encode(f.name), data=_enc.encode(f.data), crc=crc32(data);
+    const local=[].concat([0x50,0x4b,0x03,0x04],u16(20),u16(0),u16(0),u16(0),u16(0),
+      u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0));
+    chunks.push(new Uint8Array(local), name, data);
+    central.push({name, crc, size:data.length, offset});
+    offset += local.length + name.length + data.length;
+  });
+  const cenStart=offset; const cen=[];
+  central.forEach(c=>{
+    const h=[].concat([0x50,0x4b,0x01,0x02],u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),
+      u32(c.crc),u32(c.size),u32(c.size),u16(c.name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(c.offset));
+    cen.push(new Uint8Array(h), c.name); offset += h.length + c.name.length;
+  });
+  const end=new Uint8Array([].concat([0x50,0x4b,0x05,0x06],u16(0),u16(0),
+    u16(central.length),u16(central.length),u32(offset-cenStart),u32(cenStart),u16(0)));
+  const all=[...chunks,...cen,end];
+  let total=0; all.forEach(a=>total+=a.length);
+  const out=new Uint8Array(total); let o=0; all.forEach(a=>{out.set(a,o);o+=a.length;});
+  return out;
+}
+const xmlEsc = v => String(v==null?'':v)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&apos;').replace(/\n/g,'&#10;');
+const colName = n => { let s2=''; n++; while(n>0){ const m=(n-1)%26; s2=String.fromCharCode(65+m)+s2; n=(n-m-1)/26; } return s2; };
+
+/* rows: array of arrays. A cell is a string/number, or {v, wrap:true, bold:true}. */
+function downloadXLSX(filename, sheetName, rows, colWidths){
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>
+<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFEFF1F5"/><bgColor indexed="64"/></patternFill></fill></fills>
+<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>
+<border><left style="thin"><color rgb="FFD0D5DD"/></left><right style="thin"><color rgb="FFD0D5DD"/></right>
+<top style="thin"><color rgb="FFD0D5DD"/></top><bottom style="thin"><color rgb="FFD0D5DD"/></bottom><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="4">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" applyBorder="1"><alignment vertical="top"/></xf>
+<xf numFmtId="0" fontId="1" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"><alignment vertical="center" wrapText="1"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>
+<xf numFmtId="0" fontId="1" fillId="0" borderId="1" applyFont="1" applyBorder="1"><alignment vertical="top" wrapText="1"/></xf>
+</cellXfs></styleSheet>`;
+  const cols = (colWidths||[]).map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('');
+  const body = rows.map((r,ri)=>{
+    let lines=1;
+    const cells=r.map((cell,ci)=>{
+      const o = (cell&&typeof cell==='object') ? cell : {v:cell};
+      const v = o.v==null?'':o.v;
+      if(typeof v==='string') lines=Math.max(lines, v.split('\n').length);
+      const style = ri===0 ? 1 : (o.bold?3:(o.wrap?2:0));
+      const ref = colName(ci)+(ri+1);
+      if(typeof v==='number' && isFinite(v)) return `<c r="${ref}" s="${style}"><v>${v}</v></c>`;
+      return `<c r="${ref}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+    }).join('');
+    const h = ri===0 ? 22 : Math.max(18, lines*15+6);
+    return `<row r="${ri+1}" ht="${h}" customHeight="1">${cells}</row>`;
+  }).join('');
+  const sheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+${cols?`<cols>${cols}</cols>`:''}<sheetData>${body}</sheetData></worksheet>`;
+  const files=[
+    {name:'[Content_Types].xml', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
+    {name:'_rels/.rels', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+    {name:'xl/workbook.xml', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets><sheet name="${xmlEsc(sheetName).slice(0,31)}" sheetId="1" r:id="rId1"/></sheets></workbook>`},
+    {name:'xl/_rels/workbook.xml.rels', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+    {name:'xl/styles.xml', data:styles},
+    {name:'xl/worksheets/sheet1.xml', data:sheet},
+  ];
+  const blob=new Blob([zipFiles(files)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=el('a',{href:url,download:filename}); document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+
+/* Draws the same table onto a canvas and saves it as a JPEG. */
+function downloadJPEG(filename, title, subtitle, headers, rows, widths){
+  const S=2, PAD=14, LH=19, HEADH=34;
+  const W=widths.reduce((a,b)=>a+b,0)+PAD*2;
+  const heights=rows.map(r=>{
+    let lines=1; r.forEach(c=>{ const v=(c&&c.v!=null)?c.v:c; if(typeof v==='string') lines=Math.max(lines,v.split('\n').length); });
+    return Math.max(32, lines*LH+14);
+  });
+  const H = PAD*2 + 58 + HEADH + heights.reduce((a,b)=>a+b,0) + 26;
+  const cv=document.createElement('canvas'); cv.width=W*S; cv.height=H*S;
+  const g=cv.getContext('2d'); g.scale(S,S);
+  g.fillStyle='#ffffff'; g.fillRect(0,0,W,H);
+  g.textBaseline='top';
+  g.fillStyle='#14161a'; g.font='600 19px Inter, Segoe UI, Arial'; g.fillText(title, PAD, PAD);
+  g.fillStyle='#5b6270'; g.font='13px Inter, Segoe UI, Arial'; g.fillText(subtitle, PAD, PAD+26);
+
+  let y=PAD+58;
+  g.fillStyle='#eff1f5'; g.fillRect(PAD,y,W-PAD*2,HEADH);
+  g.fillStyle='#5b6270'; g.font='600 11px Inter, Segoe UI, Arial';
+  let x=PAD;
+  headers.forEach((h,i)=>{ g.fillText(String(h).toUpperCase(), x+9, y+12); x+=widths[i]; });
+  y+=HEADH;
+
+  rows.forEach((r,ri)=>{
+    const h=heights[ri];
+    if(ri%2) { g.fillStyle='#fafbfc'; g.fillRect(PAD,y,W-PAD*2,h); }
+    g.strokeStyle='#e4e7eb'; g.lineWidth=1;
+    g.beginPath(); g.moveTo(PAD,y+h-0.5); g.lineTo(W-PAD,y+h-0.5); g.stroke();
+    x=PAD;
+    r.forEach((cell,ci)=>{
+      const o=(cell&&typeof cell==='object')?cell:{v:cell};
+      g.fillStyle=o.muted?'#5b6270':'#14161a';
+      g.font=(o.bold?'600 ':'')+'13px Inter, Segoe UI, Arial';
+      String(o.v==null?'':o.v).split('\n').forEach((ln,li)=>g.fillText(ln, x+9, y+9+li*LH));
+      x+=widths[ci];
+    });
+    y+=h;
+  });
+  g.fillStyle='#878f9c'; g.font='11px Inter, Segoe UI, Arial';
+  g.fillText('Pulse · generated '+new Date().toLocaleString(), PAD, y+8);
+
+  cv.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    const a=el('a',{href:url,download:filename}); document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+  },'image/jpeg',0.93);
+}
+
+/* ---------------------------------------------------------------
+   8c. SCHEDULE PREVIEW DATA — one source for the table and both exports
+   --------------------------------------------------------------- */
+function previewGroups(ds, groupBy){
+  const sched=buildSchedule(ds);
+  const fmtSeg=(seg, mode, ag)=>{
+    const c=cinfo(seg);
+    const when=hhmm(seg.start)+' to '+hhmm(seg.end);
+    if(mode==='campaign') return when+'\n'+ag.name+' | TL: '+seg.tl;
+    if(mode==='tl')       return when+'\n'+ag.name+' — '+c.name;
+    return when+'\n'+c.name+' | TL: '+seg.tl;
+  };
+  const groups=[];
+
+  if(groupBy==='agent'){
+    rosterFor(ds).forEach(a=>{
+      const sc=sched.assignments[a.id]||{segments:[]};
+      const segs=segsOf(sc);
+      groups.push({key:a.id, title:a.name, sub:a.unit+' · '+a.band+' band · '+a.skill,
+        note:sc.note, exception:sc.exception,
+        cell: sc.exception ? STATUS[sc.exception].label
+             : segs.length ? segs.map(sg=>fmtSeg(sg,'agent',a)).join('\n\n')
+             : 'Spare capacity',
+        segments:segs, mandays:segs.reduce((n,x)=>n+x.fte,0), agentId:a.id});
+    });
+    return groups;
+  }
+
+  // campaign or TL
+  const bucket={};
+  rosterFor(ds).forEach(a=>{
+    segsOf(sched.assignments[a.id]).forEach(sg=>{
+      const k = groupBy==='campaign' ? sg.campaignId : (sg.tl||'—');
+      bucket[k]=bucket[k]||[];
+      bucket[k].push({seg:sg, a});
+    });
+  });
+  Object.keys(bucket).sort((x,y)=>{
+    const nx = groupBy==='campaign' ? (cinfo({campaignId:x,cname:(bucket[x][0].seg.cname)}).name) : x;
+    const ny = groupBy==='campaign' ? (cinfo({campaignId:y,cname:(bucket[y][0].seg.cname)}).name) : y;
+    return String(nx).localeCompare(String(ny));
+  }).forEach(k=>{
+    const items=bucket[k].sort((p,q)=>p.seg.start-q.seg.start);
+    const first=items[0].seg, c=cinfo(first);
+    groups.push({key:k,
+      title: groupBy==='campaign' ? c.name : 'TL: '+k,
+      sub: groupBy==='campaign'
+        ? c.client+' · '+c.type+' · TL: '+c.tl+' · '+hhmm(winOfId(k)?winOfId(k)[0]:first.start)
+        : items.length+' assignment'+(items.length===1?'':'s'),
+      cell: items.map(it=>fmtSeg(it.seg, groupBy, it.a)).join('\n\n'),
+      segments: items.map(it=>it.seg),
+      mandays: items.reduce((n,it)=>n+it.seg.fte,0)});
+  });
+
+  if(groupBy==='campaign'){
+    // campaigns that were asked for but got nobody
+    activeCampaigns().forEach(c=>{
+      if(bucket[c.id]) return;
+      if(requiredFor(c.id,ds)<=0) return;
+      groups.push({key:c.id, title:c.name, sub:c.client+' · '+c.type+' · TL: '+c.tl,
+        cell:'Nobody assigned', segments:[], mandays:0, empty:true});
+    });
+  }
+  return groups;
+}
+
+/* ---------------------------------------------------------------
+   8d. GOOGLE SHEET SYNC
+   Pulls only when you press Sync. Three sources — campaigns, mandays,
+   roster & leave — each with its own saved link.
+
+   The sheet has to be readable without signing in: either
+   File > Share > "Anyone with the link", or File > Share > Publish to web.
+   If your organisation blocks both, paste or upload the CSV instead.
+   --------------------------------------------------------------- */
+function parseCSV(text){
+  const rows=[]; let row=[], cur='', q=false;
+  text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(q){
+      if(ch==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; }
+      else cur+=ch;
+    } else if(ch==='"') q=true;
+    else if(ch===','){ row.push(cur); cur=''; }
+    else if(ch==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
+    else cur+=ch;
+  }
+  row.push(cur); rows.push(row);
+  return rows.filter(r=>r.some(c=>String(c).trim()!==''));
+}
+
+// Turn whatever link they paste into something fetchable.
+function sheetCsvUrl(raw){
+  const u=String(raw||'').trim();
+  if(!u) return null;
+  if(/output=csv/.test(u)) return u;                       // already a published CSV link
+  const id=(u.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)||[])[1];
+  if(!id) return u;
+  const gid=(u.match(/[#&?]gid=([0-9]+)/)||[])[1]||'0';
+  return 'https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:csv&gid='+gid;
+}
+
+const norm = v => String(v==null?'':v).trim();
+const key  = v => norm(v).toLowerCase().replace(/\s+/g,' ');
+
+/* ---- reading the real sheets -------------------------------------------
+   The live sheets are not a tidy template. The campaign grid has ten
+   summary rows above the header, the campaign name sits in column C, and
+   the date headers are written "02-Dec" with no year. All of that is
+   handled here rather than being asked of whoever maintains the sheet. */
+
+function findCol(head, aliases){
+  for(const a of aliases){
+    const i=head.findIndex(h=>key(h)===key(a));
+    if(i>=0) return i;
+  }
+  return -1;
+}
+/* The header row is the one carrying the most known labels. Date columns count
+   as half a point, so a tab headed just "Campaign" plus a row of dates is still
+   recognised, while the summary rows above it are not. */
+function findHeaderRow(rows, labels, limit){
+  let best=-1, bestScore=0;
+  for(let i=0;i<Math.min(rows.length, limit||25);i++){
+    const named=rows[i].filter(c=>labels.some(l=>key(l)===key(c))).length;
+    if(!named) continue;
+    const dated=rows[i].filter(c=>parseDateParts(c)).length;
+    const score=named+Math.min(dated,6)*0.5;
+    if(score>bestScore){ bestScore=score; best=i; }
+  }
+  return bestScore>=1 ? best : -1;
+}
+
+const MONTHS={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+// Returns {m,d,y?} or null. Handles 02-Dec, Dec 9, 19-Aug-24, 2026-10-19,
+// 19/10, and "Monday, July 1, 2026".
+function parseDateParts(v){
+  const t=norm(v); if(!t||/^ph$/i.test(t)) return null;
+  let m=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(m) return {y:+m[1], m:+m[2], d:+m[3]};
+  m=t.match(/^(\d{1,2})[-\s]([a-z]{3})[a-z]*(?:[-\s](\d{2,4}))?$/i);
+  if(m&&MONTHS[m[2].toLowerCase()]) return {d:+m[1], m:MONTHS[m[2].toLowerCase()],
+    y:m[3]?(m[3].length===2?2000+ +m[3]:+m[3]):null};
+  m=t.match(/^([a-z]{3})[a-z]*[\s.]+(\d{1,2})(?:,?\s*(\d{4}))?$/i);
+  if(m&&MONTHS[m[1].toLowerCase()]) return {d:+m[2], m:MONTHS[m[1].toLowerCase()], y:m[3]?+m[3]:null};
+  m=t.match(/^[a-z]+,\s*([a-z]{3})[a-z]*\s+(\d{1,2}),\s*(\d{4})$/i);
+  if(m&&MONTHS[m[1].toLowerCase()]) return {d:+m[2], m:MONTHS[m[1].toLowerCase()], y:+m[3]};
+  m=t.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
+  if(m) return {d:+m[1], m:+m[2], y:m[3]?(m[3].length===2?2000+ +m[3]:+m[3]):null};
+  return null;
+}
+/* Date headers in these sheets have no year, and a run of columns can roll
+   over into January. Walk left to right and bump the year when the month
+   goes backwards. */
+function resolveDateCols(head, yearHint){
+  const out=[]; let year=yearHint||new Date().getFullYear(), last=null;
+  head.forEach((h,i)=>{
+    const p=parseDateParts(h); if(!p) return;
+    if(p.y) year=p.y;
+    else if(last!=null && p.m<last) year++;
+    last=p.m;
+    out.push({i, ds:year+'-'+pad(p.m)+'-'+pad(p.d), label:norm(h)});
+  });
+  return out;
+}
+
+// Mandays cells: a number, or one of the codes the team writes in the grid.
+const SKIP_CELL={'':1,'#ref!':1};
+/* A number is mandays. Anything else is kept word for word as a note, and a
+   campaign with a note gets nobody allocated that day. */
+function readManday(raw){
+  const t=norm(raw);
+  if(SKIP_CELL[key(t)]) return {skip:true};
+  const n=Number(t.replace(/,/g,''));
+  if(t!=='' && !isNaN(n)) return {v:n};
+  return {note:t};
+}
+
+// Availability cells on the Manpower tab.
+const LEAVE_WORDS={
+  '':'','working':'','work':'','1':'','1.0':'','yes':'','in':'','0.75':'','0.63':'','0.625':'','0.25':'',
+  'free incall':'','rdot cms only':'','sog':'','lockly':'','frannet':'',
+  'leave':'LEAVE','vl':'LEAVE','sl':'LEAVE','on leave':'LEAVE',
+  'forced leave':'FORCED_LEAVE','fl':'FORCED_LEAVE',
+  'awol':'AWOL','absent':'AWOL','no show':'AWOL',
+  'half day':'HALF_AM','half am':'HALF_AM','am':'HALF_AM','half day am':'HALF_AM','0.5':'HALF_AM','.5':'HALF_AM',
+  'half pm':'HALF_PM','pm':'HALF_PM','half day pm':'HALF_PM',
+  'off':'OFF','rest day':'OFF','rd':'OFF',
+  'training':'TRAINING','trn':'TRAINING',
+  'holiday':'HOLIDAY','ph':'HOLIDAY','ph holiday':'HOLIDAY'
+};
+
+// Campaign names carry their region: "ZYCUS TECHWATCH ANZ 18 AUG".
+function regionFromName(name){
+  const t=' '+key(name)+' ';
+  if(/\b(na|north america|usa|us)\b/.test(t)) return 'NA';
+  if(/\b(eu|emea|europe)\b/.test(t)) return 'EU';
+  if(/\bmea\b/.test(t)) return 'MEA';
+  if(/\b(anz|au|australia)\b/.test(t)) return 'AU';
+  if(/\bapac\b/.test(t)) return 'APAC';
+  return 'SEA';
+}
+const TYPE_MAP={'lq':'LQ','rsvp':'RSVP','cs':'CS','dp':'DP','research':'Research',
+  'non-voice':'Non-Voice','non voice':'Non-Voice','f2f':'F2F','webinar':'Webinar','chat':'Non-Voice'};
+const STATUS_MAP={'ongoing':'Ongoing','upcoming':'Upcoming','ending':'Ending','paused':'Paused',
+  'pause':'Paused','completed':'Completed','complete':'Completed','done':'Completed'};
+
+/* Reads a parsed sheet and reports what it WOULD change. Nothing is written
+   until the user presses Apply. */
+const CAMP_LABELS=['Campaign','Client','Status','PIC','Project Code','Type','Start Date','End Date','TL','Mandays'];
+const ROSTER_LABELS=['Agent','Agent Name','SOURCE','Batch','Priority','Type','Unit','Class','Skill','Band'];
+
+function planSheetImport(kind, rows, opts){
+  opts=opts||{};
+  const plan={kind, creates:[], updates:[], notes:[], cells:0, apply:null, error:null};
+  if(!rows||rows.length<2){ plan.error='That sheet looks empty — I need a header row and at least one row of data.'; return plan; }
+
+  const labels = kind==='roster' ? ROSTER_LABELS : CAMP_LABELS;
+  const hi = findHeaderRow(rows, labels);
+  if(hi<0){ plan.error='I could not find a header row. I look for a row containing '
+      +labels.slice(0,5).join(', ')+' — check you linked the right tab.'; return plan; }
+  const head=rows[hi].map(norm), body=rows.slice(hi+1);
+  const dateCols=resolveDateCols(head, opts.year);
+  plan.notes.push('Header found on row '+(hi+1)+'; '+dateCols.length+' date column(s).');
+
+  if(kind==='campaigns'){
+    const ci={
+      name:findCol(head,['Campaign','Campaign Name']),
+      client:findCol(head,['Client']),
+      status:findCol(head,['Status']),
+      tl:findCol(head,['TL','PIC','Team Leader']),
+      type:findCol(head,['Type']),
+      region:findCol(head,['Region']),
+      start:findCol(head,['Shift start','Start time','Shift Start Time']),
+      block:findCol(head,['Stint','Stint length','Block'])
+    };
+    if(ci.name<0){ plan.error='No "Campaign" column in the header row.'; return plan; }
+    const incoming=[];
+    body.forEach(r=>{
+      const name=norm(r[ci.name]);
+      if(!name || /^(required|available|balance|incall only|fervent|grand total|total)$/i.test(name)) return;
+      const o={name};
+      if(ci.client>=0&&norm(r[ci.client])) o.client=/ferv/i.test(r[ci.client])?'Fervent':'Incall';
+      if(ci.status>=0&&norm(r[ci.status])) o.status=STATUS_MAP[key(r[ci.status])]||'Ongoing';
+      if(ci.tl>=0&&norm(r[ci.tl])&&!/^(tbc|-)$/i.test(norm(r[ci.tl]))) o.tl=norm(r[ci.tl]).split('/')[0].trim();
+      if(ci.type>=0&&norm(r[ci.type])) o.type=TYPE_MAP[key(r[ci.type])]||'LQ';
+      if(ci.region>=0&&norm(r[ci.region])) o.region=norm(r[ci.region]).toUpperCase();
+      if(ci.start>=0){ const t=parseTime(r[ci.start]); if(t!=null) o.start=t; }
+      if(ci.block>=0&&norm(r[ci.block])){ const bk=key(r[ci.block]);
+        o.block=bk.startsWith('full')?'full':(bk.match(/\d+/)||['full'])[0]; }
+      if(!o.region) o.region=regionFromName(name);
+      if(o.start==null) o.start=(REGION_WINDOW[o.region]||REGION_WINDOW.SEA)[0];
+      incoming.push(o);
+    });
+    if(!incoming.length){ plan.error='Found the header but no campaign rows under it.'; return plan; }
+    incoming.forEach(o=>{
+      const ex=D().campaigns.find(c=>key(c.name)===key(o.name));
+      if(ex){ const diffs=Object.keys(o).filter(k2=>k2!=='name'&&String(ex[k2])!==String(o[k2]));
+        if(diffs.length) plan.updates.push({name:o.name, fields:diffs}); }
+      else plan.creates.push({name:o.name});
+    });
+    if(ci.region<0) plan.notes.push('No Region column, so the region was read from each campaign name (ANZ, MEA, EU, NA…), defaulting to SEA. The shift start follows the region and is editable on the Campaigns tab.');
+    if(ci.start<0) plan.notes.push('No shift-start column — "Start Date" is the campaign’s first day, not a shift time, so it was ignored.');
+    const missing=activeCampaigns().filter(c=>!incoming.some(o=>key(o.name)===key(c.name)));
+    plan.missing=missing.map(c=>c.name);
+    plan.returning=archivedCampaigns().filter(c=>incoming.some(o=>key(o.name)===key(c.name))).map(c=>c.name);
+    plan.apply=(archiveMissing)=>touched(d=>{
+      incoming.forEach(o=>{
+        const ex=d.campaigns.find(c=>key(c.name)===key(o.name));
+        if(ex){ Object.assign(ex,o); delete ex.archived; delete ex.archivedAt; }
+        else d.campaigns.push(Object.assign({id:uid('c'),client:'Incall',type:'LQ',region:'SEA',
+          tl:'TBC',status:'Ongoing',block:'full',start:REGION_WINDOW.SEA[0]}, o));
+      });
+      if(archiveMissing) d.campaigns.forEach(c=>{
+        if(!incoming.some(o=>key(o.name)===key(c.name)) && !c.archived){
+          c.archived=true; c.archivedAt=new Date().toISOString();
+        }
+      });
+    });
+    return plan;
+  }
+
+  if(kind==='mandays'){
+    const nameCol=findCol(head,['Campaign','Campaign Name']);
+    if(nameCol<0){ plan.error='No "Campaign" column in the header row.'; return plan; }
+    if(!dateCols.length){ plan.error='No date columns found in the header row. I read 02-Dec, 19-Aug-24, 2026-10-19, 19/10 and Dec 9. Columns headed "PH" are treated as holidays, not dates.'; return plan; }
+    const set=[], unknownCamps=[], oddCells=[];
+    body.forEach(r=>{
+      const name=norm(r[nameCol]);
+      if(!name || /^(required|available|balance|incall only|fervent|grand total|total)$/i.test(name)) return;
+      const c=D().campaigns.find(x=>key(x.name)===key(name));
+      if(!c){ if(!unknownCamps.includes(name)) unknownCamps.push(name); return; }
+      dateCols.forEach(dc=>{
+        const cell=readManday(r[dc.i]);
+        if(cell.skip) return;
+        if(cell.note!=null){
+          if(oddCells.length<8&&!oddCells.includes(cell.note)) oddCells.push(cell.note);
+          set.push({cid:c.id, ds:dc.ds, note:cell.note});
+        } else set.push({cid:c.id, ds:dc.ds, v:cell.v});
+      });
+    });
+    plan.cells=set.length;
+    const dates=[...new Set(set.map(x=>x.ds))].sort();
+    const lockedHit=[...new Set(set.filter(x=>lockedDay(x.ds)).map(x=>x.ds))];
+    if(dates.length) plan.notes.push('Dates read: '+dates[0]+' to '+dates[dates.length-1]
+      +'. The headers carry no year, so '+(opts.year||new Date().getFullYear())+' was assumed — change it above if that is wrong.');
+    if(lockedHit.length) plan.notes.push(lockedHit.length+' locked date(s) will be skipped.');
+    if(unknownCamps.length) plan.notes.push('No campaign in the app matches: '+unknownCamps.slice(0,8).join(', ')
+      +(unknownCamps.length>8?' and '+(unknownCamps.length-8)+' more':'')+'. Sync the campaign list first.');
+    const noteCount=set.filter(x=>x.note!=null).length;
+    if(noteCount) plan.notes.push(noteCount+' cell(s) hold text rather than a number ('+oddCells.join(', ')
+      +'). The text is kept against that campaign-day and no agent is allocated to it.');
+    if(!set.length){ plan.error='Found '+dateCols.length+' date column(s) but no usable values. Most likely the campaign names do not match the app yet — sync the campaign list first.'; return plan; }
+    const numCount=set.filter(x=>x.v!=null).length;
+    plan.updates=[{name:numCount+' manday number(s)'+(set.length-numCount?' and '+(set.length-numCount)+' text note(s)':'')
+      +' across '+dates.length+' date(s)', fields:[]}];
+    plan.apply=()=>touched(d=>{
+      d.required=d.required||{};
+      set.forEach(x=>{ if(lockedDay(x.ds)) return;
+        d.required[x.cid]=d.required[x.cid]||{};
+        d.required[x.cid][x.ds]= x.note!=null ? {note:x.note} : x.v;
+      });
+    });
+    return plan;
+  }
+
+  if(kind==='roster'){
+    const nameCol=findCol(head,['Agent','Agent Name','Name']);
+    if(nameCol<0){ plan.error='No "Agent" column in the header row.'; return plan; }
+    const ci={unit:findCol(head,['Unit','Priority']), cls:findCol(head,['Class','Batch']),
+      skill:findCol(head,['Skill','Type']), band:findCol(head,['Band','Shift band']),
+      active:findCol(head,['Active'])};
+    const incoming=[], leave=[], avail=[], odd=[];
+    body.forEach(r=>{
+      const name=norm(r[nameCol]);
+      if(!name || /^(x|incall agents|fervent agents|total|agent)$/i.test(name)) return;
+      const o={name};
+      if(ci.unit>=0&&norm(r[ci.unit])) o.unit=/ferv/i.test(r[ci.unit])?'Fervent':'Incall';
+      if(ci.cls>=0&&norm(r[ci.cls])){ const k2=key(r[ci.cls]);
+        o.cls = k2.includes('senior')?'Senior':k2.includes('train')?'Trainee':k2.includes('free')?'Freelancer':'Temp'; }
+      if(ci.skill>=0&&norm(r[ci.skill])) o.skill=TYPE_MAP[key(r[ci.skill])]||'LQ';
+      if(ci.band>=0&&norm(r[ci.band])) o.band=key(r[ci.band]);
+      if(ci.active>=0&&norm(r[ci.active])) o.active=!/^(no|false|0|inactive)$/i.test(norm(r[ci.active]));
+      incoming.push(o);
+      dateCols.forEach(dc=>{
+        const raw=norm(r[dc.i]); if(raw==='') return;
+        const n=Number(raw);
+        if(!isNaN(n)){                       // a number is how much of the day they can work
+          avail.push({name, ds:dc.ds, v:Math.max(0,Math.min(1,n))});
+          leave.push({name, ds:dc.ds, code: n<=0 ? 'OFF' : ''});
+          return;
+        }
+        const k2=key(raw);
+        if(!(k2 in LEAVE_WORDS)){ if(odd.length<6&&!odd.includes(raw)) odd.push(raw); return; }
+        leave.push({name, ds:dc.ds, code:LEAVE_WORDS[k2]});
+        avail.push({name, ds:dc.ds, v: LEAVE_WORDS[k2]==='' ? 1 : 0});
+      });
+    });
+    if(!incoming.length){ plan.error='Found the header but no agent rows under it.'; return plan; }
+    incoming.forEach(o=>{
+      const ex=D().agents.find(a=>key(a.name)===key(o.name));
+      if(ex){ const diffs=Object.keys(o).filter(k2=>k2!=='name'&&String(ex[k2])!==String(o[k2]));
+        if(diffs.length) plan.updates.push({name:o.name, fields:diffs}); }
+      else plan.creates.push({name:o.name});
+    });
+    plan.cells=leave.length;
+    const dates=[...new Set(leave.map(x=>x.ds))].sort();
+    if(leave.length) plan.updates.push({name:avail.length+' availability value(s) across '+dates.length+' date(s)', fields:[]});
+    if(dates.length) plan.notes.push('Leave dates read: '+dates[0]+' to '+dates[dates.length-1]
+      +' (year assumed '+(opts.year||new Date().getFullYear())+').');
+    if(ci.band<0) plan.notes.push('No Band column, so existing agents keep their shift band and new ones start on day band. Set night band for the NA team on the Roster list.');
+    if(avail.length) plan.notes.push('Mandays available are summed straight from the numbers in this sheet — 1, 0.75, 0.5 and so on — not assumed to be one per head.');
+    if(odd.length) plan.notes.push('Ignored values I did not recognise: '+odd.join(', ')
+      +'. Numbers are read as the share of a day; LEAVE, FL, OFF, ABSENT and PH Holiday are read as leave codes.');
+    const missing=activeAgents().filter(a=>!incoming.some(o=>key(o.name)===key(a.name)));
+    plan.missing=missing.map(a=>a.name);
+    plan.returning=archivedAgents().filter(a=>incoming.some(o=>key(o.name)===key(a.name))).map(a=>a.name);
+    plan.apply=(archiveMissing)=>touched(d=>{
+      incoming.forEach(o=>{
+        const ex=d.agents.find(a=>key(a.name)===key(o.name));
+        if(ex){ Object.assign(ex,o); delete ex.archived; delete ex.archivedAt; }
+        else d.agents.push(Object.assign({id:uid('a'),unit:'Incall',cls:'Temp',skill:'LQ',band:'day',active:true}, o));
+      });
+      if(archiveMissing) d.agents.forEach(a=>{
+        if(!incoming.some(o=>key(o.name)===key(a.name)) && !a.archived){
+          a.archived=true; a.archivedAt=new Date().toISOString();
+        }
+      });
+      d.exceptions=d.exceptions||{}; d.availability=d.availability||{};
+      leave.forEach(x=>{
+        if(lockedDay(x.ds)) return;
+        const a=d.agents.find(y=>key(y.name)===key(x.name)); if(!a) return;
+        if(x.code==='') delete d.exceptions[a.id+'|'+x.ds];
+        else d.exceptions[a.id+'|'+x.ds]=x.code;
+      });
+      avail.forEach(x=>{
+        if(lockedDay(x.ds)) return;
+        const a=d.agents.find(y=>key(y.name)===key(x.name)); if(!a) return;
+        d.availability[a.id+'|'+x.ds]=x.v;
+      });
+    });
+    return plan;
+  }
+  plan.error='Unknown import type.';
+  return plan;
+}
+
+const SHEET_INFO={
+  campaigns:{title:'Campaign list',
+    cols:'Campaign · Client · Status · PIC or TL · Type',
+    hint:'Your CAMPAIGNS tab works as it is. The header row is found wherever it sits, so the REQUIRED / AVAILABLE / BALANCE rows above it are ignored, and PIC is read as the TL. Region comes from the campaign name (ANZ, MEA, EU, NA) unless there is a Region column. Start Date is the campaign\u2019s first day, not a shift time, so it is ignored — set shift start times on the Campaigns tab.'},
+  mandays:{title:'Mandays per day',
+    cols:'Campaign · then one column per date',
+    hint:'The same CAMPAIGNS tab. Each date column is read as that campaign\u2019s mandays for the day. IB, PH, Pause, TL, OT, Holiday, SMS and No List count as zero; a name written in a cell is ignored. Headers like 02-Dec have no year, so set the year below.'},
+  roster:{title:'Roster & leave',
+    cols:'Agent · Priority or Unit · Batch or Class · Type or Skill · then one column per date',
+    hint:'Your Manpower tab works as it is. 1 and 0.75 mean working, 0.5 is a half day, and LEAVE, FL, OFF, ABSENT and PH Holiday are read as leave, forced leave, rest day, AWOL and holiday. Headers with no year use the year set below.'}
+};
+
+function openSheetSync(kind){
+  const info=SHEET_INFO[kind];
+  const saved=((D().settings||{}).sheets||{})[kind]||'';
+  const urlIn=el('input',{class:'input',placeholder:'https://docs.google.com/spreadsheets/d/...',value:saved});
+  const thisYear=new Date().getFullYear();
+  const yearIn=el('select',{class:'input',style:'width:auto'},
+    [thisYear-1,thisYear,thisYear+1].map(y=>el('option',{value:String(y),selected:y===thisYear?'':null},String(y))));
+  const opts=()=>({year:Number(yearIn.value)});
+  const paste=el('textarea',{class:'input',rows:'4',placeholder:'…or paste the sheet contents here (copy the cells straight out of Google Sheets)'});
+  const file=el('input',{type:'file',accept:'.csv,.tsv,.txt',class:'input'});
+  const status=el('div',{class:'tiny',style:'margin-top:8px'});
+  const result=el('div',{style:'margin-top:14px'});
+
+  function show(plan){
+    result.innerHTML='';
+    if(plan.error){ result.appendChild(el('div',{class:'err'},plan.error)); return; }
+    const missing=plan.missing||[];
+    const noun = kind==='roster' ? 'agent' : 'campaign';
+    const n=plan.creates.length+plan.updates.length+missing.length;
+    if(!n){ result.appendChild(el('div',{class:'banner'},el('span',{},'✓'),el('span',{},'Nothing to change — the app already matches the sheet.'))); return; }
+
+    const archiveBox=el('input',{type:'checkbox',checked:'',style:'margin-top:4px'});
+    const box=el('div',{class:'card',style:'background:var(--bg-sunk)'});
+    const body=el('div',{class:'card-body'});
+    body.appendChild(el('h3',{style:'margin-bottom:8px'},'This is what the sync would do'));
+    if(plan.creates.length) body.appendChild(el('p',{class:'sub'},
+      el('strong',{},'Add '+plan.creates.length+': '), plan.creates.slice(0,12).map(c=>c.name).join(', ')+(plan.creates.length>12?'…':'')));
+    if(plan.returning&&plan.returning.length) body.appendChild(el('p',{class:'sub',style:'margin-top:6px'},
+      el('strong',{},'Bring back from the archive: '), plan.returning.slice(0,10).join(', ')));
+    if(plan.updates.length) body.appendChild(el('p',{class:'sub',style:'margin-top:6px'},
+      el('strong',{},'Update: '), plan.updates.slice(0,12).map(u=>u.name+(u.fields.length?' ('+u.fields.join(', ')+')':'')).join('; ')+(plan.updates.length>12?'…':'')));
+
+    if(missing.length){
+      body.appendChild(el('label',{style:'display:flex;gap:10px;align-items:flex-start;margin-top:12px;cursor:pointer'},
+        archiveBox,
+        el('span',{},
+          el('div',{style:'font-weight:550'},'Archive the '+missing.length+' '+noun+(missing.length===1?'':'s')+' not in the sheet'),
+          el('div',{class:'tiny',style:'margin-top:2px'}, missing.slice(0,10).join(', ')+(missing.length>10?' and '+(missing.length-10)+' more':'')),
+          el('div',{class:'tiny',style:'margin-top:4px'},
+            'They come off the current list but keep everything they already have — locked days still name them, and they come back automatically if they reappear in the sheet.'))));
+    }
+    plan.notes.forEach(t=>body.appendChild(el('p',{class:'tiny',style:'margin-top:8px'},'· '+t)));
+    body.appendChild(el('button',{class:'btn btn-primary',style:'margin-top:14px',onclick:()=>{
+      plan.apply(missing.length ? archiveBox.checked : false);
+      if(urlIn.value.trim()){
+        const sh=Object.assign({},(D().settings||{}).sheets||{}); sh[kind]=urlIn.value.trim();
+        setSetting('sheets',sh);
+      }
+      closeModal();
+    }},'Apply'));
+    box.appendChild(body); result.appendChild(box);
+  }
+  const handle=text=>{
+    const rows=parseCSV(text.indexOf('\t')>-1 && text.indexOf(',')===-1 ? text.replace(/\t/g,',') : text);
+    status.textContent='Read '+rows.length+' row(s) from the sheet.';
+    show(planSheetImport(kind, rows, opts()));
+  };
+
+  file.addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader(); r.onload=()=>handle(String(r.result)); r.readAsText(f); });
+
+  const body=el('div',{},
+    el('p',{class:'sub',style:'margin-bottom:12px'},
+      'Pulls only when you press Sync. Nothing is written until you have seen what would change.'),
+    el('div',{class:'card',style:'background:var(--bg-sunk);margin-bottom:16px'},
+      el('div',{class:'card-body',style:'padding:11px 13px'},
+        el('div',{class:'tiny',style:'font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px'},'Columns this reads'),
+        el('div',{style:'font-size:13px;font-weight:550;margin-bottom:5px'},info.cols),
+        el('div',{class:'tiny'},info.hint))),
+    el('div',{class:'field'}, el('label',{},'Google Sheet link'), urlIn),
+    el('div',{style:'display:flex;gap:10px;align-items:center;margin:-4px 0 12px'},
+      el('span',{class:'tiny'},'Date headers like 02-Dec have no year. Treat them as'), yearIn),
+    el('p',{class:'tiny',style:'margin:-6px 0 12px'},
+      'The sheet must be readable without signing in — File → Share → Anyone with the link, or File → Share → Publish to web. Copy the link of the tab you want; its gid is picked up automatically.'),
+    el('button',{class:'btn btn-primary',onclick:()=>{
+      const u=sheetCsvUrl(urlIn.value);
+      if(!u){ status.textContent='Enter a link first.'; return; }
+      status.textContent='Fetching…'; result.innerHTML='';
+      const alt=(function(){
+        const id=(urlIn.value.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)||[])[1];
+        const gid=(urlIn.value.match(/[#&?]gid=([0-9]+)/)||[])[1]||'0';
+        return id?'https://docs.google.com/spreadsheets/d/'+id+'/export?format=csv&gid='+gid:null;
+      })();
+      const tryFetch=url=>fetch(url,{cache:'no-store'})
+        .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); });
+      tryFetch(u)
+        .catch(()=>alt?tryFetch(alt):Promise.reject(new Error('no alternative URL')))
+        .then(handle)
+        .catch(err=>{
+          status.textContent='';
+          result.innerHTML='';
+          result.appendChild(el('div',{class:'err'},
+            'Could not read that sheet ('+err.message+'). The browser can only read a sheet that opens '
+            +'without signing in, and this one does not. In Google Sheets choose File → Share → '
+            +'Publish to web, pick the tab, choose CSV, and paste that link here. If your organisation '
+            +'blocks publishing, select the cells in the sheet, copy them, and paste into the box below — '
+            +'that always works and reads exactly the same.'));
+        });
+    }},'Sync now'),
+    status,
+    el('div',{class:'divider'},'OR WITHOUT A LINK'),
+    el('div',{class:'field'}, el('label',{},'Paste the cells'), paste,
+      el('button',{class:'btn btn-sm',style:'margin-top:8px',onclick:()=>{
+        if(!paste.value.trim()){ status.textContent='Paste something first.'; return; }
+        handle(paste.value);
+      }},'Read pasted data')),
+    el('div',{class:'field'}, el('label',{},'Or upload a CSV'), file),
+    result);
+
+  showModal('Sync '+info.title.toLowerCase()+' from Google Sheets', body,
+    [el('button',{class:'btn',onclick:closeModal},'Close')]);
+}
+
+function syncButton(kind){
+  const saved=((D().settings||{}).sheets||{})[kind];
+  return el('button',{class:'btn btn-sm'+(saved?' btn-primary':''),
+    title:saved?'Linked to a Google Sheet':'Not linked yet',
+    onclick:()=>openSheetSync(kind)}, saved?'Sync from Sheet':'Link a Google Sheet');
+}
+
+/* ---------------------------------------------------------------
+   9. UI
+   --------------------------------------------------------------- */
+let view='today', adminTab='mandays', filterStatus=null, filterScope='all', flashMsg=null;
+let adminDate=null, gridDays=10;
+
+const pill=k=>el('span',{class:'pill '+STATUS[k].cls}, el('i',{class:'sq'}), STATUS[k].label);
+
+function render(){
+  const app=$('#app'); app.innerHTML='';
+  if(!DB.session){ app.appendChild(LoginScreen()); return; }
+  app.appendChild(TopBar());
+  const main=el('main',{class:'main'});
+  if(autoLockMsg) main.appendChild(el('div',{class:'banner'},
+    el('span',{},'🔒'), el('span',{},autoLockMsg),
+    el('button',{class:'btn btn-sm',style:'margin-left:auto',
+      onclick:()=>{autoLockMsg=null;render()}},'Dismiss')));
+  const V={today:AgentToday,week:AgentWeek,board:Board,coverage:CoverageView,admin:Admin,reports:Reports}[view]||AgentToday;
+  main.appendChild(V());
+  app.appendChild(main);
+  app.appendChild(el('footer',{class:'note'},
+    'Pulse — clock-ins are stored in this browser only. Campaigns, mandays and the roster come from the published data file.'));
+}
+
+function LoginScreen(){
+  const errBox=el('div',{class:'err hide'});
+  const email=el('input',{class:'input',type:'email',placeholder:'you@gmail.com',autocomplete:'username'});
+  const pw=el('input',{class:'input',type:'password',placeholder:'••••••••',autocomplete:'current-password'});
+  function go(user){ DB.session=user; save(); seedToday(); runAutoLock();
+    view=user.role==='agent'?'today':'board'; render(); }
+  function signIn(e){
+    e&&e.preventDefault();
+    const addr=email.value.trim().toLowerCase();
+    if(!addr.includes('@')){errBox.textContent='Enter an email address.';errBox.classList.remove('hide');return}
+    if(!pw.value){errBox.textContent='Enter your password.';errBox.classList.remove('hide');return}
+    const known=USERS.find(u=>u.email===addr);
+    const byName=activeAgents().find(a=>addr.startsWith(a.name.split(' ')[0].toLowerCase()));
+    go(known || (byName?{email:addr,name:byName.name,role:'agent',agentId:byName.id}
+                      :{email:addr,name:addr.split('@')[0],role:'agent',agentId:DEMO_AGENT}));
+  }
+  return el('div',{class:'loginwrap'}, el('div',{class:'loginbox'},
+    el('div',{class:'card',style:'box-shadow:var(--shadow)'}, el('div',{class:'card-body',style:'padding:24px'},
+      el('div',{class:'brand',style:'margin-bottom:16px;font-size:18px'}, el('span',{class:'dot'}),'Pulse'),
+      el('p',{class:'sub',style:'margin-bottom:18px'},'Attendance & clock-in'),
+      errBox,
+      el('form',{onsubmit:signIn},
+        el('div',{class:'field'}, el('label',{},'Email'), email),
+        el('div',{class:'field'}, el('label',{},'Password'), pw),
+        el('button',{class:'btn btn-primary',type:'submit',style:'width:100%;margin-top:4px'},'Sign in')),
+      el('div',{class:'divider'},'OR TRY A ROLE'),
+      el('div',{class:'quick'}, USERS.map(u=>el('button',{onclick:()=>go(u)},
+        el('span',{class:'avatar'},initials(u.name)),
+        el('span',{}, el('div',{style:'font-weight:600'},u.name),
+          el('div',{class:'tiny'}, u.role==='agent'?'Agent':u.role==='tl'?'Team Leader':'Admin / Workforce'))))),
+      el('p',{class:'tiny',style:'margin-top:16px;text-align:center'},'Demo sign-in — any email and password are accepted.')
+    ))));
+}
+
+function TopBar(){
+  const u=DB.session, sup=u.role!=='agent';
+  const tabs = sup
+    ? [['board','Live board'],['coverage','Coverage'],['admin','Admin'],['today','My day'],['week','My week'],['reports','Reports']]
+    : [['today','Today'],['week','My week']];
+  return el('header',{class:'topbar'},
+    el('div',{class:'brand'}, el('span',{class:'dot'}),'Pulse'),
+    el('nav',{class:'nav'}, tabs.map(([k,l])=>el('button',{'aria-current':view===k?'page':null,
+      onclick:()=>{view=k;filterStatus=null;render()}},
+      l, k==='admin'&&hasLocalEdits()?el('span',{class:'pill p-warn',style:'margin-left:6px'},'•'):null))),
+    el('div',{class:'spacer'}),
+    el('span',{class:'clock'}, new Date().toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})),
+    el('button',{class:'iconbtn',title:'Toggle theme','aria-label':'Toggle theme',onclick:()=>{
+      const o=['auto','light','dark']; DB.theme=o[(o.indexOf(DB.theme||'auto')+1)%3];
+      document.documentElement.dataset.theme=DB.theme; save();}},'◐'),
+    el('button',{class:'who',title:'Sign out',onclick:()=>{DB.session=null;save();render()}},
+      el('span',{class:'avatar'},initials(u.name)),
+      el('span',{class:'tiny',style:'font-weight:600;color:var(--text)'},u.name.split(' ')[0])));
+}
+
+/* ---------- agent ---------- */
+function AgentToday(){
+  const u=DB.session, aid=u.agentId||DEMO_AGENT, a=agent(aid), ds=shiftDateFor();
+  const st=resolveStatus(aid,ds), cs=st.cs, now=new Date();
+  const w=el('div',{class:'agentwrap'});
+  w.appendChild(el('div',{class:'hero'},
+    el('div',{class:'hi'},'Hi, '+(a?a.name.split(' ')[0]:u.name)),
+    el('div',{class:'now'}, now.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})),
+    el('div',{class:'date'}, now.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'}))));
+  if(flashMsg) w.appendChild(el('div',{class:'flash'},flashMsg));
+
+  const sc=el('div',{class:'schedcard'});
+  sc.appendChild(el('div',{style:'display:flex;justify-content:space-between;align-items:center;margin-bottom:10px'},
+    el('h3',{},'Today’s schedule'), pill(st.key)));
+  if(st.sched.exception){
+    sc.appendChild(el('p',{class:'sub'},
+      st.sched.exception==='OFF'?'You are on a rest day. Enjoy it.':
+      st.sched.exception==='TRAINING'?'You are in training today — no campaign assignment.':
+      'You are on approved leave today. Nothing to clock.'));
+  } else if(!st.sched.segments.length){
+    sc.appendChild(el('p',{class:'sub'},'No campaign needs you today, so there is nothing to clock in for. Check with your TL if that looks wrong.'));
+  } else {
+    if(st.sched.note) sc.appendChild(el('div',{style:'margin-bottom:8px'},
+      el('span',{class:'chip'},EXC_LABEL[st.sched.note])));
+    st.sched.segments.forEach(s=>{
+      const c=cinfo(s);
+      sc.appendChild(el('div',{class:'seg'},
+        el('div',{class:'time'}, hhmm(s.start)+' – '+hhmm(s.end)),
+        el('div',{style:'flex:1'}, el('div',{style:'font-weight:550'},c.name),
+          el('div',{class:'tiny'}, c.client+' · '+c.type+' · '+c.region)),
+        el('span',{class:'chip',style:'align-self:center;color:'+(TL_COLOR[s.tl]||'var(--text-2)')},'TL: '+s.tl)));
+    });
+  }
+  if(!st.sched.exception && st.sched.segments.length){
+    sc.appendChild(el('div',{style:'margin-top:10px'}, timeline(st.sched.segments), timelineAxis()));
+  }
+  w.appendChild(sc);
+
+  if(!st.sched.exception && st.sched.segments.length){
+    const start=st.sched.segments[0].start, mins=nowMin()-start;
+    if(!cs.inAt){
+      const early=mins< -SETTINGS.earlyIn, late=mins>SETTINGS.grace;
+      w.appendChild(el('button',{class:'bigbtn '+(late?'late':'go'), disabled:early?'':null, onclick:()=>{
+        addEvent(aid,'IN',ds);
+        flashMsg='Clocked in at '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+        setTimeout(()=>{flashMsg=null;render()},4000); render();}},
+        early?'Opens at '+hhmm(start-SETTINGS.earlyIn):'Clock In'));
+      w.appendChild(el('p',{class:'tiny',style:'text-align:center;margin-top:9px'},
+        mins<0?'Your shift starts in '+fmtDur(-mins):late?'You are '+fmtDur(mins)+' past your start time':'Right on time'));
+    } else if(!cs.outAt){
+      const worked=Math.round((Date.now()-cs.inAt-cs.breakMs)/60000);
+      w.appendChild(el('div',{class:'card',style:'padding:18px;margin-bottom:12px;text-align:center'},
+        el('div',{class:'tiny',style:'margin-bottom:4px'}, cs.onBreak?'On break':'Time on shift'),
+        el('div',{class:'timer'}, fmtDur(Math.max(0,worked))),
+        el('div',{class:'tiny',style:'margin-top:4px'},'In at '+new Date(cs.inAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})
+          +(st.lateMin>0?' · '+st.lateMin+' min late':''))));
+      w.appendChild(el('div',{class:'row2'},
+        el('button',{class:'btn',style:'padding:14px',onclick:()=>{addEvent(aid,cs.onBreak?'BREAK_END':'BREAK_START',ds);render()}},
+          cs.onBreak?'End Break':'Start Break'),
+        el('button',{class:'btn bigbtn stop',style:'padding:14px;font-size:15px',onclick:()=>{
+          addEvent(aid,'OUT',ds);
+          flashMsg='Clocked out at '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+          setTimeout(()=>{flashMsg=null;render()},4000); render();}},'Clock Out')));
+    } else {
+      const worked=Math.round((cs.outAt-cs.inAt-cs.breakMs)/60000);
+      w.appendChild(el('div',{class:'card',style:'padding:20px;text-align:center'},
+        el('div',{style:'font-size:30px;margin-bottom:6px'},'✓'), el('h2',{},'Shift complete'),
+        el('p',{class:'sub',style:'margin-top:6px'}, fmtDur(worked)+' worked · '+fmtDur(Math.round(cs.breakMs/60000))+' break'),
+        el('p',{class:'tiny',style:'margin-top:8px'},'See you tomorrow.')));
+    }
+  }
+  return w;
+}
+
+function AgentWeek(){
+  const aid=DB.session.agentId||DEMO_AGENT, today=todayStr();
+  const w=el('div',{});
+  w.appendChild(el('div',{class:'page-head'}, el('div',{}, el('h1',{},'My week'),
+    el('p',{class:'sub'},'Generated from the mandays each campaign needs'))));
+  const grid=el('div',{class:'weekgrid'});
+  for(let i=-1;i<6;i++){
+    const d=addDays(new Date(),i), ds=ymd(d), st=resolveStatus(aid,ds);
+    const card=el('div',{class:'daycard'+(ds===today?' today':'')});
+    card.append(el('div',{class:'tiny',style:'font-weight:700;letter-spacing:.04em;text-transform:uppercase'},
+      d.toLocaleDateString([],{weekday:'short'})+' '+d.getDate()),
+      el('div',{style:'margin:7px 0'}, pill(st.key)));
+    (st.sched.segments||[]).forEach(s=>card.append(
+      el('div',{style:'margin-top:7px;font-size:13px;font-weight:550'},cinfo(s).name),
+      el('div',{class:'tiny'},hhmm(s.start)+'–'+hhmm(s.end)),
+      el('div',{class:'tiny',style:'color:'+(TL_COLOR[s.tl]||'var(--text-3)')},'TL: '+s.tl)));
+    grid.appendChild(card);
+  }
+  w.appendChild(grid);
+  return w;
+}
+
+/* ---------- live board ---------- */
+function Board(){
+  const ds=shiftDateFor(), u=DB.session, w=el('div',{});
+  const rows=activeAgents().map(a=>({a,st:resolveStatus(a.id,ds)}));
+  const counts={}; rows.forEach(r=>counts[r.st.key]=(counts[r.st.key]||0)+1);
+
+  w.appendChild(el('div',{class:'page-head'},
+    el('div',{}, el('h1',{},'Live board'),
+      el('p',{class:'sub'}, new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'})+' · shift date '+ds)),
+    el('div',{class:'spacer'}),
+    el('button',{class:'btn btn-sm',onclick:()=>exportRegister(ds)},'Export register (CSV)')));
+  w.appendChild(el('div',{class:'banner'}, el('span',{},'ⓘ'),
+    el('span',{},'Any TL can open any agent’s full day. Each segment is labelled with the TL who owns those hours — agents are shared between TLs within a single shift.')));
+
+  const order=['IN','LATE','MIA','ABSENT','LEAVE','OFF','PENDING','BREAK','DONE','TRAINING','UNASSIGNED'];
+  const strip=el('div',{class:'strip'});
+  order.forEach(k=>{
+    if(!counts[k]&&!['IN','LATE','MIA','ABSENT','LEAVE'].includes(k)) return;
+    strip.appendChild(el('button',{class:'stat','aria-pressed':filterStatus===k?'true':'false',
+      onclick:()=>{filterStatus=filterStatus===k?null:k;render()}},
+      el('div',{class:'v'},counts[k]||0),
+      el('div',{class:'l'}, el('i',{class:'sq',style:'background:'+STATUS[k].color}), STATUS[k].label)));
+  });
+  w.appendChild(strip);
+
+  const myTL=u.role==='tl'?u.name:null;
+  // Admin and Workforce can act on anyone. A TL can act on the segments they own.
+  const canEdit = segs => u.role==='admin' || (myTL && (!segs.length || segs.some(x=>x.tl===myTL)));
+  w.appendChild(el('div',{class:'toolbar'},
+    el('button',{class:'btn btn-sm'+(filterScope==='all'?' btn-primary':''),onclick:()=>{filterScope='all';render()}},'All agents'),
+    myTL&&el('button',{class:'btn btn-sm'+(filterScope==='mine'?' btn-primary':''),onclick:()=>{filterScope='mine';render()}},'My segments'),
+    filterStatus&&el('button',{class:'btn btn-sm',onclick:()=>{filterStatus=null;render()}},'Clear: '+STATUS[filterStatus].label)));
+
+  let list=rows;
+  if(filterStatus) list=list.filter(r=>r.st.key===filterStatus);
+  if(filterScope==='mine'&&myTL) list=list.filter(r=>(r.st.sched.segments||[]).some(s=>s.tl===myTL));
+
+  const tb=el('tbody',{});
+  list.forEach(({a,st})=>{
+    const cs=st.cs||{}, segs=st.sched.segments||[];
+    const ribbon=timeline(segs, true);
+    tb.appendChild(el('tr',{},
+      el('td',{}, el('div',{style:'display:flex;align-items:center;gap:9px'}, el('span',{class:'avatar'},initials(a.name)),
+        el('span',{}, el('div',{class:'name'},a.name), el('div',{class:'tiny'},a.unit+' · '+a.cls)))),
+      el('td',{}, segs.length?el('div',{},
+          el('div',{style:'font-size:13px'},segs.map(s=>cinfo(s).name).join(' → ')),
+          el('div',{class:'tiny'},segs.map(s=>hhmm(s.start)+'–'+hhmm(s.end)).join(', ')))
+        :el('span',{class:'tiny'},'—')),
+      el('td',{}, ribbon, el('div',{class:'tiny',style:'margin-top:4px'},
+        [...new Set(segs.map(s=>s.tl))].map(t=>'TL: '+t).join(' · ')||'—')),
+      el('td',{class:'r'}, cs.inAt?new Date(cs.inAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'—'),
+      el('td',{class:'r'}, st.lateMin>0?el('span',{style:'color:var(--warn);font-weight:600'},st.lateMin+'m'):'—'),
+      el('td',{}, pill(st.key),
+        st.sched.note?el('div',{style:'margin-top:3px'},el('span',{class:'chip'},EXC_LABEL[st.sched.note])):null),
+      el('td',{class:'r'}, canEdit(segs)
+        ? el('div',{style:'display:flex;gap:6px;justify-content:flex-end'},
+            el('button',{class:'btn btn-sm',title:'Set leave, AWOL, half day…',onclick:()=>openDayStatus(a.id,ds)},'Status'),
+            el('button',{class:'btn btn-sm',title:'Move to another campaign',onclick:()=>openReassign(a.id,ds)},'Reassign'))
+        : el('span',{class:'tiny',title:'Owned by another TL'},'read-only'))));
+  });
+
+  const card=el('div',{class:'card'});
+  card.appendChild(el('div',{class:'card-head'}, el('h2',{},'Agents'), el('span',{class:'tiny'},list.length+' of '+rows.length+' shown')));
+  card.appendChild(el('div',{class:'tablewrap'}, el('table',{}, el('thead',{}, el('tr',{},
+    ['Agent','Schedule','TL ownership','Clock in','Late','Status',''].map(h=>el('th',{class:(h==='Clock in'||h==='Late')?'r':''},h)))), tb)));
+  if(!list.length) card.appendChild(el('div',{class:'empty'}, el('div',{class:'big'},'✓'), el('p',{},'Nothing matches that filter.')));
+  w.appendChild(card);
+
+  const exc=rows.filter(r=>['MIA','ABSENT','LATE'].includes(r.st.key));
+  const ec=el('div',{class:'card',style:'margin-top:16px'});
+  ec.appendChild(el('div',{class:'card-head'}, el('h2',{},'Needs attention'),
+    el('span',{class:'pill '+(exc.length?'p-bad':'p-ok')}, exc.length?exc.length+' open':'All clear')));
+  if(!exc.length) ec.appendChild(el('div',{class:'empty'},el('div',{class:'big'},'🌤'),el('p',{},'Nothing needs you right now.')));
+  else{
+    const rank={MIA:0,ABSENT:1,LATE:2};
+    exc.sort((x,y)=>rank[x.st.key]-rank[y.st.key]);
+    exc.forEach(({a,st})=>{const segs=st.sched.segments||[];
+      ec.appendChild(el('div',{class:'exc'}, pill(st.key),
+        el('div',{class:'grow'}, el('div',{class:'name'},a.name),
+          el('div',{class:'tiny'}, segs.map(s=>cinfo(s).name+' (TL: '+s.tl+') '+hhmm(s.start)).join(' · ')||'—')),
+        el('span',{class:'tiny'}, st.key==='LATE'?st.lateMin+' min late':'no clock-in')));});
+  }
+  w.appendChild(ec);
+  return w;
+}
+
+/* ---------- coverage ---------- */
+function CoverageView(){
+  const ds=shiftDateFor();
+  const rows=coverage(ds).sort((a,b)=>(b.live-a.live)||(a.balance-b.balance));
+  const w=el('div',{});
+  w.appendChild(el('div',{class:'page-head'},
+    el('div',{}, el('h1',{},'Coverage vs requirement'),
+      el('p',{class:'sub'},'Mandays required against who is actually clocked in, right now')),
+    el('div',{class:'spacer'}),
+    el('button',{class:'btn btn-sm',onclick:()=>exportCoverage(ds)},'Export coverage (CSV)')));
+
+  const liveRows=rows.filter(r=>r.live);
+  const tot=liveRows.reduce((o,r)=>({req:o.req+r.required,act:o.act+r.actual,sch:o.sch+r.scheduled}),{req:0,act:0,sch:0});
+  const bal=tot.act-tot.req, dayTot=rows.reduce((n,r)=>n+r.required,0);
+  const byUnit={}; liveRows.forEach(r=>{const k=r.c.client;byUnit[k]=byUnit[k]||{req:0,act:0};byUnit[k].req+=r.required;byUnit[k].act+=r.actual});
+
+  w.appendChild(el('div',{class:'rollups'},
+    el('div',{class:'roll'},el('div',{class:'k'},'Required now'),el('div',{class:'v'},fteTxt(tot.req)),
+      el('div',{class:'tiny'},fteTxt(dayTot)+' across the full day · numbers only')),
+    el('div',{class:'roll'},el('div',{class:'k'},'Scheduled'),el('div',{class:'v'},fteTxt(tot.sch))),
+    el('div',{class:'roll'},el('div',{class:'k'},'Available now'),el('div',{class:'v'},fteTxt(tot.act)),
+      el('div',{class:'tiny'},fteTxt(capacityTotal(ds))+' mandays on the roster today')),
+    el('div',{class:'roll'},el('div',{class:'k'},'Balance'),
+      el('div',{class:'v bal '+(bal<0?'neg':bal>0?'pos':'zero')},(bal>0?'+':'')+fteTxt(bal)),
+      el('div',{class:'tiny'}, bal<0?'short by '+fteTxt(-bal):bal>0?'over by '+fteTxt(bal):'exactly met')),
+    ...Object.entries(byUnit).map(([k,v])=>el('div',{class:'roll'},el('div',{class:'k'},k+' balance'),
+      el('div',{class:'v bal '+((v.act-v.req)<0?'neg':(v.act-v.req)>0?'pos':'zero')},((v.act-v.req)>0?'+':'')+fteTxt(v.act-v.req))))));
+
+  const tb=el('tbody',{});
+  rows.forEach(r=>{
+    const pct=Math.min(1,r.required?r.actual/r.required:1);
+    const cls=!r.live?'ok':r.balance<0?(pct<0.5?'bad':'warn'):r.balance>0?'over':'ok';
+    const dots=el('div',{class:'dots'});
+    r.agents.slice(0,14).forEach(({a,st,counts})=>dots.appendChild(el('span',{class:'dot',
+      title:a.name+' — '+STATUS[st.key].label,
+      style:'background:'+(counts?STATUS[st.key].color:'transparent')+';border-color:'+STATUS[st.key].color})));
+    if(!r.agents.length) dots.appendChild(el('span',{class:'tiny'},'nobody assigned'));
+    tb.appendChild(el('tr',{},
+      el('td',{}, el('div',{class:'name'},r.c.name),
+        el('div',{class:'tiny'},r.c.client+' · '+r.c.type+' · TL: '+r.c.tl)),
+      el('td',{class:'tiny'}, hhmm(r.window[0])+'–'+hhmm(r.window[1]),
+        !r.live&&el('div',{},el('span',{class:'pill p-mute',style:'margin-top:3px'},'Not yet due'))),
+      el('td',{class:'r'}, r.note?el('span',{class:'pill p-warn'},r.note)
+        : r.unset?el('span',{class:'tiny'},'not set') : fteTxt(r.required)),
+      el('td',{class:'r muted'}, fteTxt(r.scheduled),
+        r.gap?el('div',{class:'tiny',style:'color:var(--bad)'},fteTxt(r.gap.unfilled)+' unfilled'):null),
+      el('td',{class:'r',style:'font-weight:650'}, r.live?fteTxt(r.actual):'—'),
+      el('td',{class:'r'}, r.live?el('span',{class:'bal '+(r.balance<0?'neg':r.balance>0?'pos':'zero')},
+        (r.balance>0?'+':'')+fteTxt(r.balance)):el('span',{class:'tiny'},'—')),
+      el('td',{style:'min-width:110px'}, el('div',{class:'bar'},el('i',{class:cls,style:'width:'+(r.live?pct*100:0)+'%'})),
+        el('div',{class:'tiny',style:'margin-top:3px'}, !r.live?'window closed':r.required?Math.round(r.actual/r.required*100)+'% covered':'no demand')),
+      el('td',{}, dots)));
+  });
+  const card=el('div',{class:'card'});
+  card.appendChild(el('div',{class:'card-head'},el('h2',{},'By campaign'),el('span',{class:'tiny'},'Worst shortfall first')));
+  card.appendChild(el('div',{class:'tablewrap'},el('table',{},el('thead',{},el('tr',{},
+    [['Campaign',''],['Window',''],['Required','r'],['Scheduled','r'],['Actual','r'],['Balance','r'],['Coverage',''],['Who','']]
+      .map(([h,c])=>el('th',{class:c},h)))),tb)));
+  w.appendChild(card);
+
+  const gaps=buildSchedule(ds).gaps;
+  if(gaps.length){
+    const gc=el('div',{class:'card',style:'margin-top:16px'});
+    gc.appendChild(el('div',{class:'card-head'},el('h2',{},'Why some mandays could not be filled'),
+      el('span',{class:'pill p-warn'},fteTxt(gaps.reduce((n,g)=>n+g.unfilled,0))+' mandays short')));
+    gaps.forEach(g=>gc.appendChild(el('div',{class:'exc'},
+      el('span',{class:'pill p-warn'},fteTxt(g.unfilled)),
+      el('div',{class:'grow'}, el('div',{class:'name'},campaign(g.campaignId).name),
+        el('div',{class:'tiny'},g.reason)))));
+    w.appendChild(gc);
+  }
+  return w;
+}
+
+/* ---------- reports ---------- */
+function Reports(){
+  const ds=shiftDateFor();
+  const rows=activeAgents().map(a=>({a,st:resolveStatus(a.id,ds)}));
+  const late=rows.filter(r=>r.st.lateMin>0), mia=rows.filter(r=>['MIA','ABSENT'].includes(r.st.key));
+  const onLeave=rows.filter(r=>r.st.key==='LEAVE'), present=rows.filter(r=>['IN','LATE','BREAK','DONE'].includes(r.st.key));
+  const sched=rows.filter(r=>!r.st.sched.exception&&(r.st.sched.segments||[]).length);
+  const w=el('div',{});
+  w.appendChild(el('div',{class:'page-head'},el('div',{},el('h1',{},'Reports'),el('p',{class:'sub'},'Shift date '+ds))));
+  w.appendChild(el('div',{class:'rollups'},
+    el('div',{class:'roll'},el('div',{class:'k'},'Scheduled'),el('div',{class:'v'},sched.length)),
+    el('div',{class:'roll'},el('div',{class:'k'},'Present'),el('div',{class:'v'},present.length)),
+    el('div',{class:'roll'},el('div',{class:'k'},'Late'),el('div',{class:'v',style:'color:var(--warn)'},late.length)),
+    el('div',{class:'roll'},el('div',{class:'k'},'MIA / Absent'),el('div',{class:'v',style:'color:var(--bad)'},mia.length)),
+    el('div',{class:'roll'},el('div',{class:'k'},'On leave'),el('div',{class:'v',style:'color:var(--info)'},onLeave.length)),
+    el('div',{class:'roll'},el('div',{class:'k'},'Attendance rate'),
+      el('div',{class:'v'}, sched.length?Math.round(present.length/sched.length*100)+'%':'—'))));
+  const c=el('div',{class:'card'});
+  c.appendChild(el('div',{class:'card-head'},el('h2',{},'Download')));
+  c.appendChild(el('div',{class:'card-body',style:'display:flex;gap:9px;flex-wrap:wrap'},
+    el('button',{class:'btn',onclick:()=>exportRegister(ds)},'Daily attendance register'),
+    el('button',{class:'btn',onclick:()=>exportCoverage(ds)},'Coverage vs requirement'),
+    el('button',{class:'btn',onclick:()=>exportSchedule(ds)},'Generated schedule'),
+    el('button',{class:'btn',onclick:()=>exportHistory()},'Allocation history (locked days)')));
+  w.appendChild(c);
+  const d=el('div',{class:'card',style:'margin-top:16px'});
+  d.appendChild(el('div',{class:'card-head'},el('h2',{},'Demo clock-ins'),el('span',{class:'tiny'},'Only affects this browser')));
+  d.appendChild(el('div',{class:'card-body'},el('button',{class:'btn',onclick:()=>{
+    if(confirm('Clear all clock-ins stored in this browser?')){DB.events=[];save();seedToday();render()}}},'Reset clock-ins')));
+  w.appendChild(d);
+  return w;
+}
+
+/* ---------------------------------------------------------------
+   9b. MANUAL RE-ASSIGNMENT
+   A pin overrules the auto-assigner for one agent on one date.
+   Stored as overrides['agentId|date'] = {am:campaignId, pm:campaignId}
+   Leave a half blank and the system still fills that half itself.
+   --------------------------------------------------------------- */
+function hasOverride(aid,ds){
+  const o=(D().overrides||{})[aid+'|'+ds];
+  if(!o) return false;
+  if(Array.isArray(o.segments)) return o.segments.length>0;
+  return !!(o.am||o.pm);
+}
+function getOverride(aid,ds){ return (D().overrides||{})[aid+'|'+ds]||{}; }
+
+function closeModal(){ const m=document.querySelector('.modalbg'); if(m) m.remove(); }
+function showModal(title, bodyNode, actions){
+  closeModal();
+  const bg=el('div',{class:'modalbg',onclick:e=>{if(e.target===bg)closeModal()}});
+  const card=el('div',{class:'modal'},
+    el('div',{class:'card-head'}, el('h2',{},title), el('div',{class:'spacer'}),
+      el('button',{class:'iconbtn','aria-label':'Close',onclick:closeModal},'×')),
+    el('div',{class:'card-body'}, bodyNode),
+    el('div',{class:'card-body',style:'display:flex;gap:9px;flex-wrap:wrap;border-top:1px solid var(--border)'}, actions));
+  bg.appendChild(card); document.body.appendChild(bg);
+  document.addEventListener('keydown', function esc(e){
+    if(e.key==='Escape'){ closeModal(); document.removeEventListener('keydown',esc); }});
+}
+
+function openReassign(aid, ds){
+  const a=agent(aid), sched=scheduleFor(aid,ds);
+  const live=activeCampaigns().filter(c=>c.status!=='Completed').sort((x,y)=>x.name.localeCompare(y.name));
+  if(!live.length){ showModal('Reassign',el('p',{class:'sub'},'There are no campaigns to assign to yet.'),
+    [el('button',{class:'btn',onclick:closeModal},'Close')]); return; }
+
+  // start from whatever is already pinned, else from what the system worked out
+  const existing = normaliseOverride(getOverride(aid,ds));
+  let rows = (existing && existing.length ? existing
+              : (sched.segments||[]).map(x=>({campaignId:x.campaignId,start:x.start,mins:x.end-x.start})))
+             .map(r=>Object.assign({},r));
+
+  const list=el('div',{});
+  const total=el('div',{class:'tiny',style:'margin-top:8px'});
+  const warn=el('div',{class:'banner warn hide',style:'margin-top:12px'});
+
+  function redraw(){
+    list.innerHTML='';
+    rows.forEach((r,i)=>list.appendChild(rowEditor(r,i)));
+    if(!rows.length) list.appendChild(el('p',{class:'tiny',style:'padding:8px 0'},
+      'No stints. Save like this and the system assigns this agent automatically again.'));
+    const mins=rows.reduce((n,r)=>n+(r.mins||0),0);
+    const over=mins>WORK_MIN;
+    total.innerHTML='';
+    total.append('Total on shift: '+fmtDur(mins)+'  ·  '+fteTxt(Math.min(mins,WORK_MIN)/WORK_MIN)+' mandays');
+    total.style.color = over?'var(--warn)':'var(--text-3)';
+    if(over) total.append(' — over a full '+WORK_HOURS+'-hour day, only the first '+WORK_HOURS+'h count as mandays');
+    checkWarnings();
+  }
+
+  function checkWarnings(){
+    const msgs=[];
+    const bad=rows.map(r=>campaign(r.campaignId)).filter(c=>c&&bandForRegion(c.region)!==a.band);
+    if(bad.length) msgs.push(bad.map(c=>c.name).join(' and ')+' runs on the '+bandForRegion(bad[0].region)
+      +' shift band, but '+a.name.split(' ')[0]+' is a '+a.band+'-band agent.');
+    const sorted=rows.slice().sort((x,y)=>x.start-y.start);
+    for(let i=1;i<sorted.length;i++)
+      if(sorted[i].start < sorted[i-1].start+sorted[i-1].mins){ msgs.push('Two stints overlap — the later one will be dropped.'); break; }
+    rows.forEach(r=>{ const c=campaign(r.campaignId); if(!c) return;
+      const w=winOf(c);
+      if(r.start<w[0]||r.start+r.mins>w[1])
+        msgs.push(c.name+' runs '+hhmm(w[0])+'–'+hhmm(w[1])+'; this stint falls outside that window.'); });
+    if(msgs.length){ warn.textContent=msgs.join('  '); warn.classList.remove('hide'); }
+    else warn.classList.add('hide');
+  }
+
+  function rowEditor(r,i){
+    const camp=el('select',{class:'input',style:'flex:2;min-width:150px'},
+      live.map(c=>el('option',{value:c.id,selected:c.id===r.campaignId?'':null},c.name)));
+    const startSel=el('select',{class:'input',style:'flex:1;min-width:110px'});
+    const durSel=el('select',{class:'input',style:'flex:1;min-width:110px'});
+
+    function fillTimes(){
+      const c=campaign(camp.value)||live[0];
+      const w=winOf(c);
+      startSel.innerHTML='';
+      for(let t=w[0]; t<w[1]; t+=30)
+        startSel.appendChild(el('option',{value:String(t),selected:t===r.start?'':null},hhmm(t)));
+      if(![...startSel.options].some(o=>o.selected)) startSel.value=String(w[0]);
+      durSel.innerHTML='';
+      durSel.appendChild(el('option',{value:'full',selected:r.mins===(w[1]-w[0])?'':null},
+        'Full shift ('+fmtDur(w[1]-w[0])+')'));
+      [1,2,3,4,5,6,7,8].forEach(h=>durSel.appendChild(
+        el('option',{value:String(h*60),selected:r.mins===h*60?'':null}, h+(h===1?' hour':' hours'))));
+      if(![...durSel.options].some(o=>o.selected)) durSel.value='full';
+    }
+    function commit(){
+      const c=campaign(camp.value)||live[0];
+      const w=winOf(c);
+      r.campaignId=c.id;
+      r.start=Number(startSel.value);
+      r.mins = durSel.value==='full' ? (w[1]-w[0]) : Number(durSel.value);
+      redraw();
+    }
+    camp.addEventListener('change',()=>{ r.campaignId=camp.value; r.start=winOf(campaign(camp.value))[0];
+      fillTimes(); commit(); });
+    startSel.addEventListener('change',commit);
+    durSel.addEventListener('change',commit);
+    fillTimes();
+
+    return el('div',{style:'display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap'},
+      camp, startSel, durSel,
+      el('button',{class:'iconbtn','aria-label':'Remove stint',title:'Remove',
+        onclick:()=>{rows.splice(i,1);redraw()}},'×'));
+  }
+
+  function quick(kind){
+    const c=campaign(rows[0]&&rows[0].campaignId)||live[0];
+    const w=winOf(c), hv=halvesOf(c);
+    if(kind==='full') rows=[{campaignId:c.id,start:w[0],mins:w[1]-w[0]}];
+    if(kind==='am')   rows=[{campaignId:c.id,start:hv[0][0],mins:hv[0][1]-hv[0][0]}];
+    if(kind==='pm')   rows=[{campaignId:c.id,start:hv[1][0],mins:hv[1][1]-hv[1][0]}];
+    redraw();
+  }
+
+  const body=el('div',{},
+    el('p',{class:'sub',style:'margin-bottom:12px'},
+      a.name+' · '+parseYmd(ds).toLocaleDateString([],{weekday:'long',day:'numeric',month:'long'})
+      +' · '+a.band+' band'),
+    el('div',{class:'card',style:'background:var(--bg-sunk);margin-bottom:14px'},
+      el('div',{class:'card-body',style:'padding:11px 13px'},
+        el('div',{class:'tiny',style:'margin-bottom:4px'},'Right now'),
+        el('div',{style:'font-size:13.5px'}, sched.exception?STATUS[sched.exception].label:scheduleText(sched)),
+        timeline(sched.segments||[]))),
+    el('div',{style:'display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px'},
+      el('button',{class:'btn btn-sm',onclick:()=>quick('full')},'Whole shift'),
+      el('button',{class:'btn btn-sm',onclick:()=>quick('am')},'Morning half'),
+      el('button',{class:'btn btn-sm',onclick:()=>quick('pm')},'Afternoon half')),
+    list,
+    el('button',{class:'btn btn-sm',onclick:()=>{
+      const c=live[0], w=winOf(c);
+      const lastEnd=rows.length?Math.max(...rows.map(r=>r.start+r.mins)):w[0];
+      rows.push({campaignId:c.id,start:Math.max(w[0],Math.min(lastEnd,w[1]-60)),mins:120}); redraw();
+    }},'+ Add a stint'),
+    total, warn);
+  redraw();
+
+  const actions=[
+    el('button',{class:'btn btn-primary',onclick:()=>{
+      touched(d=>{
+        d.overrides=d.overrides||{};
+        const clean=rows.filter(r=>r.campaignId&&r.mins>0)
+          .map(r=>({campaignId:r.campaignId,start:r.start,mins:r.mins}));
+        if(clean.length) d.overrides[aid+'|'+ds]={segments:clean};
+        else delete d.overrides[aid+'|'+ds];
+      });
+      closeModal();
+    }},'Save assignment'),
+    hasOverride(aid,ds)&&el('button',{class:'btn btn-danger',onclick:()=>{
+      touched(d=>{ if(d.overrides) delete d.overrides[aid+'|'+ds]; }); closeModal();
+    }},'Back to automatic'),
+    el('button',{class:'btn',onclick:closeModal},'Cancel')
+  ].filter(Boolean);
+
+  showModal('Reassign '+a.name.split(' ')[0], body, actions);
+}
+
+/* A day drawn as a bar, 6 AM through 6 AM. Makes split and part-day
+   assignments readable at a glance. */
+const TL_START=6*60, TL_END=30*60;
+function timeline(segments, compact){
+  const bar=el('div',{class:'tl'+(compact?' tl-sm':'')});
+  (segments||[]).forEach(s=>{
+    const a=Math.max(TL_START,s.start), b=Math.min(TL_END,s.end);
+    if(b<=a) return;
+    bar.appendChild(el('span',{class:'tlseg',
+      style:'left:'+((a-TL_START)/(TL_END-TL_START)*100)+'%;width:'+((b-a)/(TL_END-TL_START)*100)
+        +'%;background:'+(TL_COLOR[s.tl]||'var(--mute)'),
+      title:hhmm(s.start)+'–'+hhmm(s.end)+' · '+cinfo(s).name+' · TL: '+s.tl}));
+  });
+  return bar;
+}
+function timelineAxis(){
+  const ax=el('div',{class:'tlaxis'});
+  for(let t=TL_START;t<=TL_END;t+=360)
+    ax.appendChild(el('span',{style:'left:'+((t-TL_START)/(TL_END-TL_START)*100)+'%'},hhmm(t)));
+  return ax;
+}
+
+function openDayStatus(aid, ds){
+  const a=agent(aid), cur=(D().exceptions||{})[aid+'|'+ds]||'';
+  const sel=el('select',{class:'input'}, EXC_OPTIONS.map(([v,l])=>el('option',{value:v,selected:v===cur?'':null},l)));
+  const body=el('div',{},
+    el('p',{class:'sub',style:'margin-bottom:14px'},
+      a.name+' · '+parseYmd(ds).toLocaleDateString([],{weekday:'long',day:'numeric',month:'long'})),
+    el('div',{class:'field'}, el('label',{},'Status for this day'), sel),
+    el('p',{class:'tiny'},'Leave, forced leave, AWOL, rest day, training and holiday all take the agent out of the schedule for that day, and their mandays go back into the pool for other campaigns. A half day leaves them with half their capacity.'));
+  showModal('Day status', body, [
+    el('button',{class:'btn btn-primary',onclick:()=>{
+      touched(d=>{ d.exceptions=d.exceptions||{};
+        if(sel.value==='') delete d.exceptions[aid+'|'+ds]; else d.exceptions[aid+'|'+ds]=sel.value; });
+      closeModal();
+    }},'Save'),
+    el('button',{class:'btn',onclick:closeModal},'Cancel')]);
+}
+
+/* ---------------------------------------------------------------
+   10. ADMIN — the only place you update anything
+   --------------------------------------------------------------- */
+function touched(fn){ editData(fn); clearSchedCache(); render(); }
+
+function workingDays(from, n){
+  const out=[]; let d=parseYmd(from);
+  while(out.length<n){ if(!isWeekend(d)) out.push(ymd(d)); d=addDays(d,1); }
+  return out;
+}
+// Mandays available on a date, by shift band. A half day counts as 0.5.
+function capacityOn(ds){
+  const by={day:0,evening:0,night:0};
+  activeAgents().forEach(a=>{
+    if(a.active===false) return;
+    by[a.band]=(by[a.band]||0)+availabilityFor(a.id,ds);
+  });
+  return by;
+}
+const capacityTotal = ds => { const c=capacityOn(ds); return c.day+c.evening+c.night; };
+
+function Admin(){
+  if(!adminDate) adminDate=todayStr();
+  const w=el('div',{});
+  w.appendChild(el('div',{class:'page-head'},
+    el('div',{}, el('h1',{},'Admin'),
+      el('p',{class:'sub'},'Update campaigns and mandays. The schedule works itself out from those two things.'))));
+
+  if(hasLocalEdits()){
+    w.appendChild(el('div',{class:'banner warn'}, el('span',{},'●'),
+      el('span',{}, el('strong',{},'You have unpublished changes. '),
+        'They are live for you on this browser only. Go to Publish to download the data file and upload it to GitHub so everyone else sees them.'),
+      el('button',{class:'btn btn-sm',style:'margin-left:auto',onclick:()=>{adminTab='publish';render()}},'Publish')));
+  }
+
+  w.appendChild(el('div',{class:'subnav'},
+    [['mandays','Mandays'],['campaigns','Campaigns'],['roster','Roster & leave'],['preview','Schedule preview'],['history','History'],['publish','Publish']]
+      .map(([k,l])=>el('button',{'aria-current':adminTab===k?'page':null,onclick:()=>{adminTab=k;render()}},l))));
+
+  w.appendChild({mandays:AdminMandays,campaigns:AdminCampaigns,roster:AdminRoster,
+                 preview:AdminPreview,history:AdminHistory,publish:AdminPublish}[adminTab]());
+  return w;
+}
+
+/* --- mandays grid: the daily job --- */
+function AdminMandays(){
+  const days=workingDays(adminDate, gridDays);
+  const camps=activeCampaigns().filter(c=>c.status!=='Completed');
+  const w=el('div',{});
+  const unset=unsetMandays(days);
+
+  w.appendChild(el('div',{class:'toolbar'},
+    el('button',{class:'btn btn-sm',onclick:()=>{adminDate=ymd(addDays(parseYmd(adminDate),-7));render()}},'← Earlier'),
+    el('input',{class:'input',type:'date',style:'width:170px',value:adminDate,
+      onchange:e=>{adminDate=e.target.value||todayStr();render()}}),
+    el('button',{class:'btn btn-sm',onclick:()=>{adminDate=ymd(addDays(parseYmd(adminDate),7));render()}},'Later →'),
+    el('button',{class:'btn btn-sm',onclick:()=>{adminDate=todayStr();render()}},'Today'),
+    el('div',{class:'spacer'}),
+    syncButton('mandays'),
+    el('span',{class:'tiny'},'1 manday = '+WORK_HOURS+'h')));
+
+  if(unset.length){
+    const byCamp={}; unset.forEach(u=>{ (byCamp[u.name]=byCamp[u.name]||[]).push(u.ds); });
+    const names=Object.keys(byCamp);
+    w.appendChild(el('div',{class:'banner warn'}, el('span',{},'●'),
+      el('span',{},
+        el('strong',{}, unset.length+' campaign-day'+(unset.length===1?'':'s')+' have no mandays value. '),
+        'Nothing is assumed for them — '+names.slice(0,5).join(', ')+(names.length>5?' and '+(names.length-5)+' more':'')
+        +'. Put a number in the Google Sheet and sync again, or accept them as zero here.'),
+      el('button',{class:'btn btn-sm',style:'margin-left:auto;white-space:nowrap',onclick:()=>{
+        if(!confirm('Set all '+unset.length+' blank campaign-days to 0 mandays?\nDo this only if you are sure the sheet is right and these days genuinely need nobody.')) return;
+        touched(d=>{ d.required=d.required||{};
+          unset.forEach(u=>{ d.required[u.cid]=d.required[u.cid]||{}; d.required[u.cid][u.ds]=0; }); });
+      }},'Accept all as 0')));
+  }
+
+  const tb=el('tbody',{});
+  camps.forEach(c=>{
+    const cells=days.map(ds=>{
+      if(lockedDay(ds)){
+        const nt=requiredNote(c.id,ds);
+        return el('td',{class:'c'}, el('span',{class:'tiny',title:'This day is locked'},
+          (nt||(requiredIsSet(c.id,ds)?fteTxt(requiredFor(c.id,ds)):'—'))+' 🔒'));
+      }
+      const nt=requiredNote(c.id,ds);
+      if(nt){
+        return el('td',{class:'c'},
+          el('button',{class:'gridcell note',title:'The sheet says "'+nt+'" — nobody is allocated. Click to replace with a number.',
+            onclick:()=>{
+              const v=prompt('"'+nt+'" is what the sheet says for '+c.name+' on '+ds
+                +'.\nNobody is allocated while that is there.\n\nEnter a number of mandays to replace it, or leave blank to keep the note.');
+              if(v===null||v.trim()==='') return;
+              const n=Number(v); if(isNaN(n)) return;
+              touched(d=>{ d.required[c.id]=d.required[c.id]||{}; d.required[c.id][ds]=n; });
+            }}, nt.length>7?nt.slice(0,6)+'…':nt));
+      }
+      const set=requiredIsSet(c.id,ds);
+      return el('td',{class:'c'}, el('input',{class:'gridcell'+(set?' set':' unset'),type:'number',min:'0',step:'0.125',
+        value: set?String(requiredFor(c.id,ds)):'', placeholder:'—', title:c.name+' — '+ds,
+        onchange:e=>{
+          const v=e.target.value.trim();
+          touched(d=>{ d.required=d.required||{}; d.required[c.id]=d.required[c.id]||{};
+            if(v==='') delete d.required[c.id][ds]; else d.required[c.id][ds]=Number(v); });
+        }}));
+    });
+    tb.appendChild(el('tr',{},
+      el('td',{}, el('div',{class:'name'},c.name),
+        el('div',{class:'tiny'},c.client+' · '+c.type+' · '+c.region+' · TL: '+c.tl
+          +' · '+(BLOCKS.find(b=>b[0]===(c.block||'full'))||BLOCKS[0])[1])),
+      ...cells));
+  });
+
+  const tf=el('tfoot',{});
+  const totRow=el('tr',{}, el('td',{style:'font-weight:650'},'Mandays required'));
+  const capRow=el('tr',{}, el('td',{style:'font-weight:650'},'Mandays available'));
+  const balRow=el('tr',{}, el('td',{style:'font-weight:650'},'Balance'));
+  days.forEach(ds=>{
+    const req=camps.reduce((n,c)=>n+((c.status==='Paused'||c.status==='Upcoming')?0:requiredFor(c.id,ds)),0);
+    const cap=capacityTotal(ds), bal=cap-req;
+    totRow.appendChild(el('td',{class:'c',style:'font-weight:650'},fteTxt(req)));
+    capRow.appendChild(el('td',{class:'c muted'},fteTxt(cap)));
+    balRow.appendChild(el('td',{class:'c'},el('span',{class:'bal '+(bal<0?'neg':bal>0?'pos':'zero')},(bal>0?'+':'')+fteTxt(bal))));
+  });
+  tf.append(totRow,capRow,balRow);
+
+  const card=el('div',{class:'card'});
+  card.appendChild(el('div',{class:'card-head'}, el('h2',{},'Mandays required per day'),
+    el('span',{class:'tiny'},'Blue = a number · Amber = text from the sheet, nobody allocated · Dash = nothing set')));
+  card.appendChild(el('div',{class:'tablewrap'}, el('table',{class:'sticky-first'},
+    el('thead',{},el('tr',{}, el('th',{},'Campaign'),
+      ...days.map(ds=>{const d=parseYmd(ds);
+        return el('th',{class:'c'}, d.toLocaleDateString([],{weekday:'short'}),
+          el('div',{style:'font-weight:400'}, d.getDate()+'/'+(d.getMonth()+1)
+            +(lockedDay(ds)?' 🔒':'')))}))),
+    tb, tf)));
+  w.appendChild(card);
+  w.appendChild(el('p',{class:'tiny',style:'margin-top:10px'},
+    'Mandays required is the sum of the campaigns that have a number. Campaigns showing text from the sheet, and campaigns with nothing set, add nothing and get nobody. '
+    +'Mandays available is the sum of the numbers on the Manpower sheet — 1, 0.75, 0.5 and so on — not one per head.'));
+  return w;
+}
+
+/* --- campaigns --- */
+function AdminCampaigns(){
+  const w=el('div',{});
+  const tb=el('tbody',{});
+  const sel=(val,opts,on,labels)=>el('select',{class:'input',style:'min-width:110px',onchange:e=>on(e.target.value)},
+    opts.map((o,i)=>el('option',{value:o,selected:o===val?'':null},labels?labels[i]:o)));
+
+  activeCampaigns().forEach(c=>{
+    tb.appendChild(el('tr',{},
+      el('td',{}, el('input',{class:'input',style:'min-width:190px',value:c.name,
+        onchange:e=>touched(d=>{d.campaigns.find(x=>x.id===c.id).name=e.target.value})})),
+      el('td',{}, sel(c.client,UNITS,v=>touched(d=>{d.campaigns.find(x=>x.id===c.id).client=v}))),
+      el('td',{}, sel(c.type,TYPES,v=>touched(d=>{d.campaigns.find(x=>x.id===c.id).type=v}))),
+      el('td',{}, sel(c.region,REGIONS,v=>touched(d=>{
+          const t=d.campaigns.find(x=>x.id===c.id); t.region=v; t.start=REGION_WINDOW[v][0];
+        }))),
+      el('td',{},
+        el('select',{class:'input',style:'min-width:105px',onchange:e=>touched(d=>{
+            d.campaigns.find(x=>x.id===c.id).start=Number(e.target.value);
+          })},
+          (function(){const o=[];for(let t=0;t<1440;t+=30)o.push(t);
+            return o.map(t=>el('option',{value:String(t),selected:t===(winOf(c)[0]%1440)?'':null},hhmm(t)));})()),
+        el('div',{class:'tiny',style:'margin-top:3px'},'to '+hhmm(winOf(c)[1]))),
+      el('td',{}, el('input',{class:'input',style:'width:110px',value:c.tl,
+        onchange:e=>touched(d=>{d.campaigns.find(x=>x.id===c.id).tl=e.target.value})})),
+      el('td',{}, sel(c.status,STATUSES,v=>touched(d=>{d.campaigns.find(x=>x.id===c.id).status=v}))),
+      el('td',{}, sel(c.block||'full',BLOCKS.map(b=>b[0]),v=>touched(d=>{d.campaigns.find(x=>x.id===c.id).block=v}),
+        BLOCKS.map(b=>b[1]))),
+      el('td',{class:'r'}, el('button',{class:'btn btn-sm btn-danger',onclick:()=>{
+        if(confirm('Archive "'+c.name+'"?\n\nIt comes off the current list but keeps its history, and returns automatically if it shows up in a sheet sync again.'))
+          touched(d=>{const t=d.campaigns.find(x=>x.id===c.id); t.archived=true; t.archivedAt=new Date().toISOString();});
+      }},'Archive'))));
+  });
+
+  const card=el('div',{class:'card'});
+  card.appendChild(el('div',{class:'card-head'}, el('h2',{},'Campaigns'),
+    el('div',{class:'spacer'}),
+    syncButton('campaigns'),
+    el('button',{class:'btn btn-sm',onclick:()=>touched(d=>{
+      d.campaigns.push({id:uid('c'),name:'New campaign',client:'Incall',type:'LQ',region:'SEA',
+        tl:'TBC',status:'Upcoming',block:'full',start:REGION_WINDOW.SEA[0]});
+    })},'+ Add campaign')));
+  card.appendChild(el('div',{class:'tablewrap'}, el('table',{}, el('thead',{},el('tr',{},
+    ['Campaign','Client','Type','Region','Shift starts','TL','Status','Stint length',''].map(h=>el('th',{},h)))), tb)));
+  w.appendChild(card);
+  w.appendChild(el('div',{style:'margin-top:10px'},
+    el('p',{class:'tiny'},'Region sets the shift window, which decides which agents can be assigned: NA campaigns draw from night-band agents, EU from evening, everything else from day.'),
+    el('p',{class:'tiny',style:'margin-top:5px'},
+      'Stint length is how long one agent stays on the campaign in a sitting. Full shift gives someone the whole window. Pick 4, 2 or 1 hour and the mandays get spread across more people in shorter blocks — 1 manday at a 2-hour stint means four different agents for two hours each.'),
+    el('p',{class:'tiny',style:'margin-top:5px'},
+      'Mandays convert to hours at '+WORK_HOURS+' hours a day: 1 = '+WORK_HOURS+'h, 0.5 = '+(WORK_HOURS/2)+'h, 0.25 = '+(WORK_HOURS/4)+'h, 0.125 = 1h.')));
+  return w;
+}
+
+/* --- roster & leave --- */
+function AdminRoster(){
+  if(!adminDate) adminDate=todayStr();
+  const w=el('div',{});
+
+  w.appendChild(el('div',{class:'toolbar'},
+    el('button',{class:'btn btn-sm'+(rosterView==='grid'?' btn-primary':''),
+      onclick:()=>{rosterView='grid';render()}},'Leave grid'),
+    el('button',{class:'btn btn-sm'+(rosterView==='list'?' btn-primary':''),
+      onclick:()=>{rosterView='list';render()}},'Roster list'),
+    el('div',{class:'spacer'}),
+    syncButton('roster')));
+
+  w.appendChild(rosterView==='grid' ? RosterGrid() : RosterList());
+  w.appendChild(el('p',{class:'tiny',style:'margin-top:10px'},
+    'Shift band decides which campaigns an agent can be given: day, evening (EU) or night (NA). Weekends are a rest day automatically.'));
+  return w;
+}
+
+/* Two weeks of leave at a glance, the same shape as the Mandays grid. */
+const LEAVE_SHORT=[['','—'],['LEAVE','L'],['FORCED_LEAVE','FL'],['AWOL','AWOL'],
+  ['HALF_AM','AM'],['HALF_PM','PM'],['OFF','OFF'],['TRAINING','TRN'],['HOLIDAY','PH']];
+const LEAVE_TONE={LEAVE:'var(--info)',FORCED_LEAVE:'var(--info)',AWOL:'var(--bad)',
+  HALF_AM:'var(--warn)',HALF_PM:'var(--warn)',OFF:'var(--text-3)',TRAINING:'var(--accent)',HOLIDAY:'var(--info)'};
+
+function RosterGrid(){
+  const days=workingDays(adminDate, gridDays);
+  const w=el('div',{});
+  w.appendChild(el('div',{class:'toolbar'},
+    el('button',{class:'btn btn-sm',onclick:()=>{adminDate=ymd(addDays(parseYmd(adminDate),-7));render()}},'← Earlier'),
+    el('input',{class:'input',type:'date',style:'width:170px',value:adminDate,
+      onchange:e=>{adminDate=e.target.value||todayStr();clearSchedCache();render()}}),
+    el('button',{class:'btn btn-sm',onclick:()=>{adminDate=ymd(addDays(parseYmd(adminDate),7));render()}},'Later →'),
+    el('button',{class:'btn btn-sm',onclick:()=>{adminDate=todayStr();render()}},'Today'),
+    el('div',{class:'spacer'}),
+    el('span',{class:'tiny'},'L leave · FL forced · AWOL · AM/PM half day · OFF rest · TRN training · PH holiday')));
+
+  const tb=el('tbody',{});
+  activeAgents().forEach(a=>{
+    const cells=days.map(ds=>{
+      if(lockedDay(ds)){
+        const cur=(D().exceptions||{})[a.id+'|'+ds]||'';
+        return el('td',{class:'c tiny'}, (LEAVE_SHORT.find(x=>x[0]===cur)||['','—'])[1]+' 🔒');
+      }
+      const cur=(D().exceptions||{})[a.id+'|'+ds]||'';
+      const sel=el('select',{class:'gridcell'+(cur?' set':' dflt'),
+        style:'width:78px'+(cur?';color:'+(LEAVE_TONE[cur]||'var(--accent)'):''),
+        title:a.name+' — '+ds,
+        onchange:e=>touched(d=>{ d.exceptions=d.exceptions||{};
+          if(e.target.value==='') delete d.exceptions[a.id+'|'+ds];
+          else d.exceptions[a.id+'|'+ds]=e.target.value; })},
+        LEAVE_SHORT.map(([v,l])=>el('option',{value:v,selected:v===cur?'':null},l)));
+      return el('td',{class:'c'}, sel);
+    });
+    tb.appendChild(el('tr',{},
+      el('td',{}, el('div',{class:'name'},a.name), el('div',{class:'tiny'},a.unit+' · '+a.band+' band')),
+      ...cells));
+  });
+
+  const tf=el('tfoot',{});
+  const capRow=el('tr',{}, el('td',{style:'font-weight:650'},'Mandays available'));
+  const reqRow=el('tr',{}, el('td',{style:'font-weight:650'},'Mandays required'));
+  const balRow=el('tr',{}, el('td',{style:'font-weight:650'},'Balance'));
+  days.forEach(ds=>{
+    const capTot=capacityTotal(ds);
+    const req=activeCampaigns().reduce((n,c)=>n+((c.status==='Paused'||c.status==='Upcoming'||c.status==='Completed')?0:requiredFor(c.id,ds)),0);
+    const bal=capTot-req;
+    capRow.appendChild(el('td',{class:'c muted'},fteTxt(capTot)));
+    reqRow.appendChild(el('td',{class:'c muted'},fteTxt(req)));
+    balRow.appendChild(el('td',{class:'c'},el('span',{class:'bal '+(bal<0?'neg':bal>0?'pos':'zero')},(bal>0?'+':'')+fteTxt(bal))));
+  });
+  tf.append(capRow,reqRow,balRow);
+
+  const card=el('div',{class:'card'});
+  card.appendChild(el('div',{class:'card-head'}, el('h2',{},'Leave over two weeks'),
+    el('span',{class:'tiny'},'Set a day straight in the grid — the schedule re-covers itself')));
+  card.appendChild(el('div',{class:'tablewrap'}, el('table',{class:'sticky-first'},
+    el('thead',{},el('tr',{}, el('th',{},'Agent'),
+      ...days.map(ds=>{const d=parseYmd(ds);
+        return el('th',{class:'c'}, d.toLocaleDateString([],{weekday:'short'}),
+          el('div',{style:'font-weight:400'}, d.getDate()+'/'+(d.getMonth()+1)+(lockedDay(ds)?' 🔒':'')))}))),
+    tb, tf)));
+  w.appendChild(card);
+  return w;
+}
+
+function RosterList(){
+  const w=el('div',{});
+  const sel=(val,opts,on)=>el('select',{class:'input',style:'min-width:100px',onchange:e=>on(e.target.value)},
+    opts.map(o=>el('option',{value:o,selected:o===val?'':null},o)));
+  const tb=el('tbody',{});
+  activeAgents().forEach(a=>{
+    const cur=(D().exceptions||{})[a.id+'|'+adminDate]||'';
+    tb.appendChild(el('tr',{},
+      el('td',{}, el('input',{class:'input',style:'min-width:180px',value:a.name,
+        onchange:e=>touched(d=>{d.agents.find(x=>x.id===a.id).name=e.target.value})})),
+      el('td',{}, sel(a.unit,UNITS,v=>touched(d=>{d.agents.find(x=>x.id===a.id).unit=v}))),
+      el('td',{}, sel(a.cls,CLASSES,v=>touched(d=>{d.agents.find(x=>x.id===a.id).cls=v}))),
+      el('td',{}, sel(a.skill,TYPES,v=>touched(d=>{d.agents.find(x=>x.id===a.id).skill=v}))),
+      el('td',{}, sel(a.band,BANDS,v=>touched(d=>{d.agents.find(x=>x.id===a.id).band=v}))),
+      el('td',{}, el('select',{class:'input',style:'min-width:170px',onchange:e=>touched(d=>{
+          d.exceptions=d.exceptions||{};
+          if(e.target.value==='') delete d.exceptions[a.id+'|'+adminDate];
+          else d.exceptions[a.id+'|'+adminDate]=e.target.value;
+        })}, EXC_OPTIONS.map(([v,l])=>el('option',{value:v,selected:v===cur?'':null},l)))),
+      el('td',{class:'c'}, el('input',{type:'checkbox',checked:a.active!==false?'':null,
+        onchange:e=>touched(d=>{d.agents.find(x=>x.id===a.id).active=e.target.checked})})),
+      el('td',{class:'r'}, el('button',{class:'btn btn-sm btn-danger',onclick:()=>{
+        if(confirm('Archive '+a.name+'?\n\nThey come off the current roster but keep their history, and return automatically if they show up in a sheet sync again.'))
+          touched(d=>{const t=d.agents.find(x=>x.id===a.id); t.archived=true; t.archivedAt=new Date().toISOString();});
+      }},'Archive'))));
+  });
+  const card=el('div',{class:'card'});
+  card.appendChild(el('div',{class:'card-head'}, el('h2',{},'Roster'),
+    el('span',{class:'tiny'},'Day status column applies to '+adminDate),
+    el('div',{class:'spacer'}),
+    el('button',{class:'btn btn-sm',onclick:()=>touched(d=>{
+      d.agents.push({id:uid('a'),name:'New agent',unit:'Incall',cls:'Trainee',skill:'LQ',band:'day',active:true});
+    })},'+ Add agent')));
+  card.appendChild(el('div',{class:'tablewrap'}, el('table',{}, el('thead',{},el('tr',{},
+    ['Agent','Unit','Class','Skill','Shift band','Status on '+adminDate,'Active',''].map(h=>el('th',{class:h==='Active'?'c':''},h)))), tb)));
+  w.appendChild(card);
+  return w;
+}
+
+/* --- schedule preview --- */
+let previewGroupBy='agent', rosterView='grid';
+
+function AdminPreview(){
+  if(!adminDate) adminDate=todayStr();
+  const ds=adminDate, sched=buildSchedule(ds), lk=lockedDay(ds);
+  const groups=previewGroups(ds, previewGroupBy);
+  const w=el('div',{});
+
+  const label={agent:'Agent',campaign:'Campaign',tl:'Team Leader'}[previewGroupBy];
+  const dateLabel=parseYmd(ds).toLocaleDateString([],{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  function exportRows(){
+    const rows=[[label, previewGroupBy==='agent'?'Assignment':'Who is on it','Mandays']];
+    groups.forEach(g=>rows.push([
+      {v:g.title+(g.sub?'\n'+g.sub:''), wrap:true, bold:true},
+      {v:(g.note?EXC_LABEL[g.note]+'\n':'')+g.cell, wrap:true},
+      g.mandays]));
+    return rows;
+  }
+
+  w.appendChild(el('div',{class:'toolbar'},
+    el('input',{class:'input',type:'date',style:'width:170px',value:ds,
+      onchange:e=>{adminDate=e.target.value||todayStr();render()}}),
+    lk?el('span',{class:'pill p-info'},'Locked'):null,
+    el('span',{class:'tiny',style:'margin-left:4px'},'View by'),
+    el('select',{class:'input',style:'width:auto',onchange:e=>{previewGroupBy=e.target.value;render()}},
+      [['agent','Agent'],['campaign','Campaign'],['tl','Team Leader']].map(([v,l])=>
+        el('option',{value:v,selected:previewGroupBy===v?'':null},l))),
+    el('div',{class:'spacer'}),
+    el('button',{class:'btn btn-sm',onclick:()=>downloadXLSX(
+      'schedule-'+ds+'-by-'+previewGroupBy+'.xlsx', 'Schedule '+ds, exportRows(), [34,52,11])},'Excel (.xlsx)'),
+    el('button',{class:'btn btn-sm',onclick:()=>{
+      const rows=groups.map(g=>[{v:g.title+(g.sub?'\n'+g.sub:''),bold:true},
+                                {v:(g.note?EXC_LABEL[g.note]+'\n':'')+g.cell},
+                                {v:fteTxt(g.mandays)}]);
+      downloadJPEG('schedule-'+ds+'-by-'+previewGroupBy+'.jpg',
+        'Schedule — '+dateLabel, 'Grouped by '+label.toLowerCase()+(lk?' · locked record':''),
+        [label, previewGroupBy==='agent'?'Assignment':'Who is on it','Mandays'], rows, [300,470,90]);
+    }},'Image (.jpg)'),
+    el('button',{class:'btn btn-sm',onclick:()=>exportSchedule(ds)},'CSV'),
+    lk
+      ? el('button',{class:'btn btn-sm btn-danger',onclick:()=>{
+          if(confirm('Unlock '+ds+'? It will go back to recalculating from today’s campaigns and mandays, so the record may change.')) unlockDay(ds);
+        }},'Unlock')
+      : el('button',{class:'btn btn-sm btn-primary',onclick:()=>lockDay(ds)},'Lock this day')));
+
+  if(lk) w.appendChild(el('div',{class:'banner'}, el('span',{},'🔒'),
+    el('span',{},'This day is locked. It is kept exactly as it was recorded on '
+      +new Date(lk.lockedAt).toLocaleString()+' by '+lk.lockedBy
+      +', and no longer changes when you edit campaigns or mandays.')));
+
+  if(sched.gaps.length){
+    const gc=el('div',{class:'card',style:'margin-bottom:16px'});
+    gc.appendChild(el('div',{class:'card-head'}, el('h2',{},'Could not fill'),
+      el('span',{class:'pill p-warn'}, fteTxt(sched.gaps.reduce((n,g)=>n+g.unfilled,0))+' mandays short')));
+    sched.gaps.forEach(g=>gc.appendChild(el('div',{class:'exc'},
+      el('span',{class:'pill p-warn'},fteTxt(g.unfilled)),
+      el('div',{class:'grow'}, el('div',{class:'name'},cinfo({campaignId:g.campaignId}).name),
+        el('div',{class:'tiny'},g.reason)))));
+    w.appendChild(gc);
+  } else {
+    w.appendChild(el('div',{class:'banner'}, el('span',{},'✓'),
+      el('span',{},'Every manday you asked for on this date has someone against it.')));
+  }
+
+  const tb=el('tbody',{});
+  groups.forEach(g=>{
+    const cell=el('td',{});
+    if(g.note) cell.appendChild(el('div',{style:'margin-bottom:4px'},el('span',{class:'chip'},EXC_LABEL[g.note])));
+    if(g.exception) cell.appendChild(el('span',{class:'pill '+STATUS[g.exception].cls}, STATUS[g.exception].label));
+    else if(!g.segments.length) cell.appendChild(el('span',{class:'tiny'}, g.empty?'Nobody assigned':'Spare capacity — every manday was already covered'));
+    else {
+      g.cell.split('\n\n').forEach(blk=>{
+        const [when,what]=blk.split('\n');
+        cell.appendChild(el('div',{style:'padding:3px 0'},
+          el('div',{style:'font-size:13px;font-weight:550'},when),
+          el('div',{class:'tiny'},what)));
+      });
+      cell.appendChild(timeline(g.segments));
+    }
+    tb.appendChild(el('tr',{},
+      el('td',{}, el('div',{class:'name'},g.title), el('div',{class:'tiny'},g.sub||'')),
+      cell,
+      el('td',{class:'r'}, fteTxt(g.mandays)),
+      el('td',{class:'r'}, (previewGroupBy==='agent' && g.agentId)
+        ? (lk ? el('span',{class:'tiny'},'locked')
+              : el('button',{class:'btn btn-sm',onclick:()=>openReassign(g.agentId,ds)},
+                  hasOverride(g.agentId,ds)?'Edit':'Reassign'))
+        : null)));
+  });
+
+  const card=el('div',{class:'card'});
+  card.appendChild(el('div',{class:'card-head'}, el('h2',{},'Who the system put where'),
+    el('span',{class:'tiny'}, lk?'Locked record':'Recalculated from the mandays above — nothing is stored'),
+    el('div',{class:'spacer'}),
+    el('div',{style:'min-width:300px;flex:0 0 300px'}, el('div',{class:'tl'}), timelineAxis())));
+  card.appendChild(el('div',{class:'tablewrap'}, el('table',{}, el('thead',{},el('tr',{},
+    [label, previewGroupBy==='agent'?'Assignment':'Who is on it','Mandays',''].map(h=>
+      el('th',{class:h==='Mandays'?'r':''},h)))), tb)));
+  w.appendChild(card);
+  return w;
+}
+
+/* --- history: the record of what was actually allocated --- */
+function AdminHistory(){
+  const w=el('div',{});
+  const hist=D().history||{};
+
+  // the last 21 working days, plus any locked day outside that range
+  const days=[];
+  for(let i=0;i<30&&days.length<21;i++){
+    const d=addDays(new Date(),-i);
+    if(!isWeekend(d)) days.push(ymd(d));
+  }
+  Object.keys(hist).forEach(k=>{ if(!days.includes(k)) days.push(k); });
+  days.sort().reverse();
+
+  const lockedCount=Object.keys(hist).length;
+  w.appendChild(el('div',{class:'banner'+(lockedCount?'':' warn')},
+    el('span',{},lockedCount?'🔒':'●'),
+    el('span',{}, lockedCount
+      ? lockedCount+' day'+(lockedCount===1?' is':'s are')+' locked. Locked days keep the allocation exactly as it was, along with the mandays, campaigns and roster behind it.'
+      : 'Nothing is locked yet. Until a day is locked it is recalculated from today\u2019s campaigns and mandays — so changing a number now also changes what last week looks like. Lock a day to freeze it as the record.')));
+
+  // --- automatic locking ---
+  const st=appSettings();
+  const auto=el('div',{class:'card',style:'margin-bottom:16px'});
+  auto.appendChild(el('div',{class:'card-head'}, el('h2',{},'Automatic locking'),
+    el('span',{class:'pill '+(st.autoLock?'p-ok':'p-mute')}, st.autoLock?'On':'Off')));
+  auto.appendChild(el('div',{class:'card-body'},
+    el('label',{style:'display:flex;gap:10px;align-items:flex-start;cursor:pointer;margin-bottom:12px'},
+      el('input',{type:'checkbox',checked:st.autoLock?'':null,style:'margin-top:4px',
+        onchange:e=>setSetting('autoLock',e.target.checked)}),
+      el('span',{}, el('div',{style:'font-weight:550'},'Lock past days on their own'),
+        el('div',{class:'tiny'},'Any working day that had an allocation gets locked once it is old enough. Days with nothing allocated are left alone.'))),
+    el('div',{style:'display:flex;gap:10px;align-items:center;flex-wrap:wrap'},
+      el('span',{class:'tiny'},'Lock a day once it is'),
+      el('select',{class:'input',style:'width:auto',onchange:e=>setSetting('autoLockAfterDays',Number(e.target.value))},
+        [[1,'1 day old'],[2,'2 days old'],[3,'3 days old'],[7,'a week old']].map(([v,l])=>
+          el('option',{value:String(v),selected:st.autoLockAfterDays===v?'':null},l))),
+      el('span',{class:'tiny'},'· looking back at most'),
+      el('select',{class:'input',style:'width:auto',onchange:e=>setSetting('autoLockWindowDays',Number(e.target.value))},
+        [[7,'7 days'],[14,'14 days'],[30,'30 days'],[60,'60 days']].map(([v,l])=>
+          el('option',{value:String(v),selected:st.autoLockWindowDays===v?'':null},l)))),
+    el('p',{class:'tiny',style:'margin-top:12px'},
+      'There is no server behind this app, so it runs when an admin opens it — not overnight by itself. '
+      +'Like every other change, the locks it creates are yours until you publish. '
+      +'Open the app and publish once a week and nothing gets missed.')));
+  w.appendChild(auto);
+
+  const lockedList=Object.keys(hist);
+  w.appendChild(el('div',{class:'toolbar'},
+    el('button',{class:'btn btn-sm',onclick:()=>{
+      const unlocked=days.filter(d=>!hist[d]&&parseYmd(d)<parseYmd(todayStr())&&daySummary(d).mandays>0);
+      if(!unlocked.length){ alert('Every past working day with an allocation is already locked.'); return; }
+      if(confirm('Lock all '+unlocked.length+' unlocked past days as they stand right now?'))
+        { unlocked.forEach(d=>lockDay(d,true)); render(); }
+    }},'Lock every past day'),
+    lockedList.length>1 && el('button',{class:'btn btn-sm btn-danger',onclick:()=>{
+      if(confirm('Unlock all '+lockedList.length+' locked days?\n\nThey go back to being recalculated from today\u2019s campaigns and mandays, so the record may change. Export them first if you need a copy.'))
+        { touched(d=>{ d.history={}; }); }
+    }},'Unlock all'),
+    el('div',{class:'spacer'}),
+    el('span',{class:'tiny'}, lockedList.length?historySizeKB()+' KB of history':''),
+    lockedList.length && el('button',{class:'btn btn-sm',onclick:()=>pruneHistory(90)},'Remove older than 90 days'),
+    el('button',{class:'btn btn-sm',onclick:()=>exportHistory()},'Export all locked days (CSV)')));
+
+  const tb=el('tbody',{});
+  days.forEach(ds=>{
+    const h=hist[ds], sum=daySummary(ds), d=parseYmd(ds);
+    const past=parseYmd(ds)<parseYmd(todayStr());
+    tb.appendChild(el('tr',{},
+      el('td',{}, el('div',{class:'name'}, d.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short',year:'numeric'})),
+        el('div',{class:'tiny'}, ds)),
+      el('td',{}, h?el('span',{class:'pill p-info'},'Locked')
+                   :el('span',{class:'pill '+(past?'p-warn':'p-mute')}, past?'Not locked':'Upcoming')),
+      el('td',{class:'r'}, fteTxt(sum.mandays)),
+      el('td',{class:'r'}, sum.people),
+      el('td',{class:'r'}, sum.unfilled>0?el('span',{style:'color:var(--bad);font-weight:600'},fteTxt(sum.unfilled)):'0'),
+      el('td',{class:'tiny'}, h? h.lockedBy+' · '+new Date(h.lockedAt).toLocaleDateString() : '—'),
+      el('td',{class:'r'}, el('div',{style:'display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap'},
+        el('button',{class:'btn btn-sm',onclick:()=>{adminDate=ds;adminTab='preview';render()}},'View'),
+        el('button',{class:'btn btn-sm',onclick:()=>exportSchedule(ds)},'CSV'),
+        h ? el('button',{class:'btn btn-sm btn-danger',onclick:()=>{
+              if(confirm('Unlock '+ds+'? The record may change when you next edit campaigns or mandays.')) unlockDay(ds);
+            }},'Unlock')
+          : el('button',{class:'btn btn-sm btn-primary',onclick:()=>lockDay(ds)},'Lock')))));
+  });
+
+  const card=el('div',{class:'card'});
+  card.appendChild(el('div',{class:'card-head'}, el('h2',{},'Daily allocation history'),
+    el('span',{class:'tiny'},'Last 21 working days · Unlock on any row puts a day back to automatic')));
+  card.appendChild(el('div',{class:'tablewrap'}, el('table',{}, el('thead',{},el('tr',{},
+    [['Day',''],['Record',''],['Mandays','r'],['Agents','r'],['Unfilled','r'],['Locked by',''],['','']]
+      .map(([h2,c])=>el('th',{class:c},h2)))), tb)));
+  w.appendChild(card);
+
+  // --- archived campaigns and agents ---
+  const ac=archivedCampaigns(), aa=archivedAgents();
+  const arch=el('div',{class:'card',style:'margin-top:16px'});
+  arch.appendChild(el('div',{class:'card-head'}, el('h2',{},'Archive'),
+    el('span',{class:'tiny'},'Off the current lists, still named everywhere they appear in the past'),
+    el('div',{class:'spacer'}),
+    el('span',{class:'pill '+((ac.length+aa.length)?'p-mute':'p-ok')},
+      (ac.length+aa.length)?ac.length+' campaign'+(ac.length===1?'':'s')+' · '+aa.length+' agent'+(aa.length===1?'':'s'):'Empty')));
+  if(!ac.length&&!aa.length){
+    arch.appendChild(el('div',{class:'empty'}, el('div',{class:'big'},'\u2713'),
+      el('p',{},'Nothing archived. A sheet sync can archive whatever is missing from the sheet.')));
+  } else {
+    const mk=(items,label,restore)=>{
+      if(!items.length) return null;
+      const tb=el('tbody',{});
+      items.slice().sort((x,y)=>x.name.localeCompare(y.name)).forEach(it=>{
+        tb.appendChild(el('tr',{},
+          el('td',{}, el('div',{class:'name'},it.name),
+            el('div',{class:'tiny'}, label==='Campaign'
+              ? [it.client,it.type,it.tl&&('TL: '+it.tl)].filter(Boolean).join(' \u00b7 ')
+              : [it.unit,it.cls,it.band&&(it.band+' band')].filter(Boolean).join(' \u00b7 '))),
+          el('td',{class:'tiny'}, it.archivedAt?new Date(it.archivedAt).toLocaleDateString():'\u2014'),
+          el('td',{class:'r'}, el('button',{class:'btn btn-sm',onclick:()=>restore(it)},'Restore'))));
+      });
+      return el('div',{},
+        el('div',{class:'card-head',style:'border-top:1px solid var(--border)'},
+          el('h3',{},label+'s'), el('span',{class:'tiny'},items.length)),
+        el('div',{class:'tablewrap'}, el('table',{}, el('thead',{},el('tr',{},
+          [label,'Archived',''].map(h=>el('th',{class:h===''?'r':''},h)))), tb)));
+    };
+    const cTab=mk(ac,'Campaign',it=>touched(d=>{const t=d.campaigns.find(x=>x.id===it.id);
+      delete t.archived; delete t.archivedAt;}));
+    const aTab=mk(aa,'Agent',it=>touched(d=>{const t=d.agents.find(x=>x.id===it.id);
+      delete t.archived; delete t.archivedAt;}));
+    if(cTab) arch.appendChild(cTab);
+    if(aTab) arch.appendChild(aTab);
+  }
+  w.appendChild(arch);
+
+  w.appendChild(el('div',{class:'card',style:'margin-top:16px'},
+    el('div',{class:'card-head'}, el('h2',{},'What is and is not kept')),
+    el('div',{class:'card-body'},
+      el('p',{class:'sub',style:'margin-bottom:10px'},
+        el('strong',{},'Kept once a day is locked: '),
+        'who was assigned to which campaign, for which hours, under which TL; the mandays asked for; and the campaign list and roster as they were that day. Renaming or deleting a campaign afterwards does not touch it.'),
+      el('p',{class:'sub',style:'margin-bottom:10px'},
+        el('strong',{},'Archived, not deleted: '),
+        'a campaign or agent that drops out of the sheet comes off the current lists but stays in the data. Locked days still name them, old exports still read correctly, and they return on their own if they reappear in a sync.'),
+      el('p',{class:'sub',style:'margin-bottom:10px'},
+        el('strong',{},'Kept whether or not you lock: '),
+        'mandays you set for a specific date, and leave, AWOL, half days and manual reassignments — those are already recorded against the date.'),
+      el('p',{class:'sub'},
+        el('strong',{},'Not kept across people: '),
+        'actual clock-in and clock-out times. Those live in each person\u2019s own browser, so the history here is the allocation — the plan — not the attendance. Export the daily attendance register from Reports each day if you need that record, or move to a hosted version with a real database.'))));
+  return w;
+}
+
+function exportHistory(){
+  const hist=D().history||{};
+  const dates=Object.keys(hist).sort();
+  if(!dates.length){ alert('No days are locked yet.'); return; }
+  const rows=[['Date','Locked by','Locked at','Agent','Unit','Status','Start','End','Campaign','Client','TL','Mandays']];
+  dates.forEach(ds=>{
+    const h=hist[ds];
+    Object.entries(h.assignments||{}).forEach(([aid,a])=>{
+      const ag=(h.roster&&h.roster[aid])||agent(aid)||{name:aid,unit:''};
+      if(a.exception||!segsOf(a).length){
+        rows.push([ds,h.lockedBy,new Date(h.lockedAt).toLocaleString(),ag.name,ag.unit,
+          a.exception?(STATUS[a.exception]||{label:a.exception}).label:'Spare','','','','','',0]);
+        return;
+      }
+      a.segments.forEach(sg=>{
+        const c=sg.cname?{name:sg.cname,client:sg.cclient||''}
+                 :((h.campaigns&&h.campaigns[sg.campaignId])||campaign(sg.campaignId)||{name:sg.campaignId,client:''});
+        rows.push([ds,h.lockedBy,new Date(h.lockedAt).toLocaleString(),ag.name,ag.unit,'Scheduled',
+          hhmm(sg.start),hhmm(sg.end),c.name,c.client,sg.tl,fteTxt(sg.fte)]);
+      });
+    });
+  });
+  downloadCSV('allocation-history.csv',rows);
+}
+
+/* --- publish --- */
+function AdminPublish(){
+  const w=el('div',{});
+  const dirty=hasLocalEdits();
+  const card=el('div',{class:'card'});
+  card.appendChild(el('div',{class:'card-head'}, el('h2',{},'Publish your changes'),
+    el('span',{class:'pill '+(dirty?'p-warn':'p-ok')}, dirty?'Unpublished changes':'Everything published')));
+
+  const body=el('div',{class:'card-body'});
+  if(!dirty){
+    body.appendChild(el('p',{class:'sub'},
+      'Nothing to publish. The app is running on the data file currently in your repository'
+      + (BASE.meta&&BASE.meta.updated?' (last updated '+new Date(BASE.meta.updated).toLocaleString()+').':'.')));
+  } else {
+    body.appendChild(el('p',{class:'sub',style:'margin-bottom:14px'},
+      'Your changes are live for you, in this browser. To make them live for everyone, download the data file and upload it to your repository. Takes about a minute.'));
+    const steps=el('ol',{style:'margin:0 0 16px 20px;font-size:14px;line-height:1.9'});
+    [ 'Click Download data.json below.',
+      'Go to your repository on GitHub.',
+      'Click Add file → Upload files.',
+      'Drag in data.json and click Commit changes.',
+      'Wait a minute, then reload the app. Everyone now sees the new numbers.'
+    ].forEach(t=>steps.appendChild(el('li',{},t)));
+    body.appendChild(steps);
+    body.appendChild(el('div',{style:'display:flex;gap:9px;flex-wrap:wrap'},
+      el('button',{class:'btn btn-primary',onclick:()=>{
+        const out=JSON.parse(JSON.stringify(DB.local));
+        out.meta={updated:new Date().toISOString(), by:(DB.session&&DB.session.name)||'admin'};
+        download('data.json', JSON.stringify(out,null,2), 'application/json');
+      }},'Download data.json'),
+      el('button',{class:'btn btn-danger',onclick:()=>{
+        if(confirm('Throw away every change you have made since the last publish?')){
+          discardLocal(); clearSchedCache(); render();
+        }}},'Discard my changes')));
+  }
+  card.appendChild(body);
+  w.appendChild(card);
+
+  const info=el('div',{class:'card',style:'margin-top:16px'});
+  info.appendChild(el('div',{class:'card-head'},el('h2',{},'How this works')));
+  info.appendChild(el('div',{class:'card-body'},
+    el('p',{class:'sub',style:'margin-bottom:10px'},
+      'This app has no server, so there is no live database. The campaign list, the mandays and the roster live in a file called data.json next to index.html in your repository. Everyone who opens the link reads that file.'),
+    el('p',{class:'sub',style:'margin-bottom:10px'},
+      'Editing here changes your own copy straight away so you can check the result. Publishing replaces the shared file.'),
+    el('p',{class:'sub'},
+      'Clock-ins are different: they stay in each person’s own browser and are never shared. That is the main thing a real backend would fix.')));
+  w.appendChild(info);
+  return w;
+}
+
+/* ---------------------------------------------------------------
+   11. BOOT
+   --------------------------------------------------------------- */
+/* The built-in sample data has no mandays of its own, because real mandays only
+   ever come from the sheet. This paints a few weeks in so a fresh install shows
+   something; it is skipped entirely once a data.json is published. */
+function seedDemoMandays(){
+  if(!BASE.demoMandays) return;
+  if(BASE.required && Object.keys(BASE.required).length) return;
+  BASE.required={};
+  const from=addDays(new Date(),-21);
+  for(let i=0;i<60;i++){
+    const d=addDays(from,i); if(isWeekend(d)) continue;
+    const ds=ymd(d);
+    Object.entries(BASE.demoMandays).forEach(([cid,v])=>{
+      BASE.required[cid]=BASE.required[cid]||{}; BASE.required[cid][ds]=v;
+    });
+  }
+}
+
+function boot(){
+  loadLocal();
+  seedDemoMandays();
+  document.documentElement.dataset.theme=DB.theme||'auto';
+  render();
+  // Load the published data file, if there is one.
+  // Skipped when opened straight off disk (file://), where fetch is blocked.
+  if(location.protocol==='http:'||location.protocol==='https:')
+  fetch('data.json',{cache:'no-store'})
+    .then(r=>r.ok?r.json():null)
+    .then(j=>{
+      if(!j||!j.campaigns||!j.agents) return;
+      BASE=Object.assign({required:{},exceptions:{},availability:{},meta:{}}, j);
+      clearSchedCache();
+      if(DB.session){ seedToday(); _autoLockRan=false; runAutoLock(); }
+      render();
+    })
+    .catch(()=>{});
+  if(DB.session){ seedToday(); runAutoLock(); }
+  render();
+  setInterval(()=>{ if(DB.session && view!=='admin') render(); }, 30000);
+}
+boot();
+</script>
+</body>
+</html>
